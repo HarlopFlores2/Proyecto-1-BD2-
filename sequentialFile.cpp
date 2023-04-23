@@ -36,8 +36,9 @@ void sequentialFile::load_data(const string & csvFile) {
     for (int i = 0; i < len; i++) {
         vector<string> row = document.GetRow<string>(i);
         temp.load(row);
-        offset += sizeof(temp);
-        temp.nextPosition = offset;
+        offset++;
+        temp.nextPosition = (i == len-1) ? 0 : offset;
+        temp.nextFile = (i == len-1) ? 1 : 0;
         data << temp;
     }
     data.close();
@@ -58,6 +59,7 @@ vector<fixedRecord> sequentialFile::range_search(int keyBegin, int keyEnd) {
 }
 
 bool sequentialFile::insert(fixedRecord record) {
+
     return false;
 }
 
@@ -72,9 +74,47 @@ void sequentialFile::merge_data() {
 void sequentialFile::readRecord(int pos) {
     // read record from dataFile
     fstream data(dataFile, ios::in | ios::binary);
-    data.seekg(pos * 48);
+    data.seekg(pos * sizeRecord());
     fixedRecord record;
     data >> record;
     data.close();
     record.print();
 }
+
+pair<int, int> sequentialFile::findLocation(int key) {
+    fstream data(dataFile, ios::in | ios::binary);
+    fstream aux(auxFile, ios::in | ios::binary);
+    if (!data || !aux) return {-1, -1};
+    fixedRecord temp;
+    data.seekg(0, ios::end);
+    long sizeData = data.tellg();
+    long sizeAux = aux.tellg();
+    long sizeRecord = sizeof(temp);
+    long l = 0;
+    long r = (sizeData / sizeRecord) - 1;
+    long index = -1;
+    while (l <= r) {
+        long m = l + (r - l) / 2;
+        data.seekg(m * sizeRecord);
+        data >> temp;
+        if (temp.getKey() == key) {
+            index = m;
+        }
+        if (temp.getKey() < key) l = m + 1;
+        else r = m - 1;
+    }
+    if (index != -1) return {0, index};
+    else index = l-1;
+
+    if (temp.nextFile == 1) {
+        while (temp.nextPosition != -1) {
+            aux.seekg(temp.nextPosition * this->sizeRecord());
+            aux >> temp;
+            if (temp.getKey() == key) return {1, temp.nextPosition};
+        }
+    }
+    return {-1, index};
+}
+
+
+

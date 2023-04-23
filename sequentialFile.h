@@ -19,7 +19,7 @@ using namespace std;
 
 
 
-// 4 + 4 + 11 + 4 + 4 + 4 + 4 + 4 + 4 + 8 = 51
+// 4 + 4 + 12 + 4 + 4 + 4 + 4 + 4 + 4 + 8 = 48
 struct fixedRecord{
     int line;
     int documentID;
@@ -30,6 +30,7 @@ struct fixedRecord{
     int customer;
     int quantity;
     int whatFile = 0; // 0 = data, 1 = aux
+    int nextFile = 0;
     long nextPosition = -1;
     void load(vector<string> data){
         line = stoi(data[0]);
@@ -51,6 +52,7 @@ struct fixedRecord{
         cout << "customer: " << customer << endl;
         cout << "quantity: " << quantity << endl;
         cout << "whatFile: " << whatFile << endl;
+        cout << "nextFIle: " << nextFile << endl;
         cout << "nextPosition: " << nextPosition << endl;
     }
 
@@ -65,12 +67,15 @@ public:
     void load_data(const string&);
     void readRecord(int pos);
     void print_all();
+    pair<int,int> findLocation(int key);
     vector<fixedRecord> search(int key);
     vector<fixedRecord> range_search(int keyBegin, int keyEnd);
     bool insert(fixedRecord record);
     bool remove(int key);
     void merge_data();
-
+    int sizeRecord(){
+        return sizeof(int) * 7 + sizeof(float) * 2 + sizeof(long) + 12;
+    }
 };
 
 
