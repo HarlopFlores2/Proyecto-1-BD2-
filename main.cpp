@@ -3,5 +3,6 @@
 
 int main(){
     sequentialFile SequentialFile(100);
-    SequentialFile.load_data("../file_out.csv");
+    //SequentialFile.load_data("../file_out.csv");
+    SequentialFile.readRecord(1);
 }

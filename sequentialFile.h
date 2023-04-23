@@ -42,6 +42,17 @@ struct fixedRecord{
         quantity = stoi(data[7]);
     }
     int getKey() {return documentID;}
+    void print(){
+        cout << "documentID: " << documentID << endl;
+        cout << "date: " << date << endl;
+        cout << "productID: " << productID << endl;
+        cout << "price: " << price << endl;
+        cout << "discount: " << discount << endl;
+        cout << "customer: " << customer << endl;
+        cout << "quantity: " << quantity << endl;
+        cout << "whatFile: " << whatFile << endl;
+        cout << "nextPosition: " << nextPosition << endl;
+    }
 
 };
 
@@ -52,6 +63,7 @@ class sequentialFile {
 public:
     explicit sequentialFile(int maxAuxSize) : maxAuxSize(maxAuxSize) {};
     void load_data(const string&);
+    void readRecord(int pos);
     void print_all();
     vector<fixedRecord> search(int key);
     vector<fixedRecord> range_search(int keyBegin, int keyEnd);

@@ -68,3 +68,13 @@ bool sequentialFile::remove(int key) {
 void sequentialFile::merge_data() {
 
 }
+
+void sequentialFile::readRecord(int pos) {
+    // read record from dataFile
+    fstream data(dataFile, ios::in | ios::binary);
+    data.seekg(pos * 48);
+    fixedRecord record;
+    data >> record;
+    data.close();
+    record.print();
+}

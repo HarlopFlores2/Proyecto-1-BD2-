@@ -369,7 +369,7 @@ namespace rapidcsv
          *                                quotes during write (default true).
          * @param   pQuoteChar            specifies the quote character (default '\"').
          */
-        explicit SeparatorParams(const char pSeparator = ',', const bool pTrim = false,
+        explicit SeparatorParams(const char pSeparator = ';', const bool pTrim = false,
                                  const bool pHasCR = sPlatformHasCR, const bool pQuotedLinebreaks = false,
                                  const bool pAutoQuote = true, const char pQuoteChar = '"')
                 : mSeparator(pSeparator)
