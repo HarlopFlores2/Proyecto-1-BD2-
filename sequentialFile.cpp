@@ -40,6 +40,7 @@ void sequentialFile::load_data(const string & csvFile) {
         temp.nextPosition = (i == len-1) ? 0 : offset;
         temp.nextFile = (i == len-1) ? 1 : 0;
         data << temp;
+        if(i==4) break;
     }
     data.close();
     aux.close();
@@ -59,6 +60,51 @@ vector<fixedRecord> sequentialFile::range_search(int keyBegin, int keyEnd) {
 }
 
 bool sequentialFile::insert(fixedRecord record) {
+    fstream data(dataFile, ios::out | ios::in | ios::binary);
+    fstream aux(auxFile, ios::out | ios::in | ios::binary);
+    if (!data || !aux) return false;
+    if (sizeAux == maxAuxSize) {
+        //merge_data();
+        //data.close();
+        //remove("dataFile.dat");
+        rename("dataFile2.dat", "dataFile.dat");
+        insert(record);
+        return true;
+    } else {
+        // si la key no esta
+        pair<int,int> prev = findLocation(record.getKey());
+        if (prev.first == 0) {
+            cout<<"*****" << prev.second <<endl;
+            // si la key esta en data
+            data.seekg(prev.second * sizeRecord());
+            fixedRecord temp;
+            data >> temp;
+            // actualizar puntero de record
+            record.nextPosition = temp.nextPosition;
+            record.nextFile = temp.nextFile;
+            // actualizar puntero del anterior
+            temp.nextPosition = sizeAux;
+            temp.nextFile = 1;
+            aux.seekp(sizeAux * sizeRecord());
+            aux << record;
+            sizeAux++;
+        } else {
+            // si la key esta en aux
+            aux.seekg(prev.second * sizeRecord());
+            fixedRecord temp;
+            aux >> temp;
+            // actualizar puntero de record
+            record.nextPosition = temp.nextPosition;
+            record.nextFile = temp.nextFile;
+            // actualizar puntero del anterior
+            temp.nextPosition = sizeAux;
+            temp.nextFile = 1;
+            aux.seekp(sizeAux * sizeRecord());
+            aux << record;
+            sizeAux++;
+        }
+    }
+
 
     return false;
 }
@@ -71,7 +117,7 @@ void sequentialFile::merge_data() {
 
 }
 
-void sequentialFile::readRecord(int pos) {
+void sequentialFile::readRecordData(int pos) {
     // read record from dataFile
     fstream data(dataFile, ios::in | ios::binary);
     data.seekg(pos * sizeRecord());
@@ -93,27 +139,56 @@ pair<int, int> sequentialFile::findLocation(int key) {
     long l = 0;
     long r = (sizeData / sizeRecord) - 1;
     long index = -1;
+    long file = -1;
     while (l <= r) {
         long m = l + (r - l) / 2;
         data.seekg(m * sizeRecord);
         data >> temp;
         if (temp.getKey() == key) {
-            index = m;
+            if (!temp.deleted){
+                file = 0;
+                index = m;
+            }
         }
         if (temp.getKey() < key) l = m + 1;
         else r = m - 1;
     }
-    if (index != -1) return {0, index};
-    else index = l-1;
-
+    if (index != -1) return {file, index};
+    else {
+        file = 0;
+        index = l-1;
+    }
+    if (temp.nextFile == 0) return {file,index};
     if (temp.nextFile == 1) {
-        while (temp.nextPosition != -1) {
-            aux.seekg(temp.nextPosition * this->sizeRecord());
-            aux >> temp;
-            if (temp.getKey() == key) return {1, temp.nextPosition};
+        int nextFile = temp.nextFile;
+        int nextPosition = temp.nextPosition;
+        fixedRecord tempAux;
+        while (nextFile == 1) {
+            aux.seekg(nextPosition * this->sizeRecord());
+            aux >> tempAux;
+            if (tempAux.getKey() == key) {
+                file = 1;
+                index = nextPosition;
+                break;
+            } else if (temp.getKey() > key) {
+                break;
+            } else {
+                index = nextPosition;
+                file = 1;
+                nextPosition = tempAux.nextPosition;
+            }
         }
     }
-    return {-1, index};
+    return {file, index};
+}
+
+void sequentialFile::readRecordAux(int pos) {
+    fstream aux(auxFile, ios::in | ios::binary);
+    aux.seekg(pos * sizeRecord());
+    fixedRecord record;
+    aux >> record;
+    aux.close();
+    record.print();
 }
 
 

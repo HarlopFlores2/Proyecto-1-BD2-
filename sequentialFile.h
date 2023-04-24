@@ -32,6 +32,7 @@ struct fixedRecord{
     int whatFile = 0; // 0 = data, 1 = aux
     int nextFile = 0;
     long nextPosition = -1;
+    int  deleted = 0;
     void load(vector<string> data){
         line = stoi(data[0]);
         documentID = stoi(data[1]);
@@ -54,6 +55,7 @@ struct fixedRecord{
         cout << "whatFile: " << whatFile << endl;
         cout << "nextFIle: " << nextFile << endl;
         cout << "nextPosition: " << nextPosition << endl;
+        cout << "deleted: " << deleted << endl;
     }
 
 };
@@ -62,10 +64,12 @@ class sequentialFile {
     string dataFile = "../dataFile.dat";
     string auxFile = "../auxFile.dat";
     int maxAuxSize;
+    int sizeAux = 0;
 public:
     explicit sequentialFile(int maxAuxSize) : maxAuxSize(maxAuxSize) {};
     void load_data(const string&);
-    void readRecord(int pos);
+    void readRecordData(int pos);
+    void readRecordAux(int pos);
     void print_all();
     pair<int,int> findLocation(int key);
     vector<fixedRecord> search(int key);
@@ -74,7 +78,7 @@ public:
     bool remove(int key);
     void merge_data();
     int sizeRecord(){
-        return sizeof(int) * 7 + sizeof(float) * 2 + sizeof(long) + 12;
+        return sizeof(int) * 8 + sizeof(float) * 2 + sizeof(long) + 12;
     }
 };
 
