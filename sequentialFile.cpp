@@ -52,12 +52,85 @@ void sequentialFile::print_all() {
 }
 
 vector<fixedRecord> sequentialFile::search(int key) {
-    return vector<fixedRecord>();
+    // Crear un vector para almacenar los resultados
+    vector<fixedRecord> results;
+    fixedRecord temp;
+    fstream data(dataFile, ios::in | ios::binary);
+    fstream aux(auxFile, ios::in | ios::binary);
+    
+    if (!data || !aux) return results; // Si no se pueden abrir los archivos, retorna vacio
+    
+    pair<int, int> loc = findLocation(key); // Buscar la ubicación del registro con la clave proporcionada
+    
+    // Si el registro se encuentra en el archivo de datos...
+    if (loc.first == 0) {
+        data.seekg(loc.second * sizeRecord());
+        data >> temp;
+        // Si la clave coincide y el registro no está marcado como eliminado, agregar al vector
+        if (temp.getKey() == key && !temp.deleted) {
+            results.push_back(temp);
+        }
+    // Si el registro se encuentra en el archivo auxiliar
+    } else if (loc.first == 1) {
+        aux.seekg(loc.second * sizeRecord());
+        aux >> temp;
+        // Si la clave coincide y el registro no está marcado como eliminado, agregar al vector
+        if (temp.getKey() == key && !temp.deleted) {
+            results.push_back(temp);
+        }
+    }
+
+    return results;
 }
 
+
 vector<fixedRecord> sequentialFile::range_search(int keyBegin, int keyEnd) {
-    return vector<fixedRecord>();
+    vector<fixedRecord> results;
+    fixedRecord temp;
+
+    // Si el rango no es válido, retornar vacio
+    if (keyBegin > keyEnd) {
+        return results;
+    }
+
+    fstream data(dataFile, ios::in | ios::binary);
+    fstream aux(auxFile, ios::in | ios::binary);
+    
+    if (!data || !aux) return results; // Si no se pueden abrir los archivos, retorna nada
+    
+    pair<int, int> locBegin = findLocation(keyBegin); // Buscar la ubicación del primer registro en el rango
+    pair<int, int> locEnd = findLocation(keyEnd); // Buscar la ubicación del último registro en el rango
+
+    // Si los registros están en el archivo de datos
+    if (locBegin.first == 0 && locBegin.second != -1) {
+        for (int pos = locBegin.second; pos <= locEnd.second; ++pos) {
+            data.seekg(pos * sizeRecord());
+            data >> temp;
+            // Si la clave está en el rango y el registro no está marcado como eliminado, agregar al vector
+            if (temp.getKey() >= keyBegin && temp.getKey() <= keyEnd && !temp.deleted) {
+                results.push_back(temp);
+            }
+        }
+    }
+
+    // Si alguno de los registros está en el archivo auxiliar
+    if (locBegin.first == 1 || locEnd.first == 1) {
+        aux.seekg(0, ios::end);
+        long sizeAux = aux.tellg();
+        long numRecords = sizeAux / sizeRecord();
+        for (int pos = 0; pos < numRecords; ++pos) {
+            aux.seekg(pos * sizeRecord());
+            aux >> temp;
+            // Si la clave está en el rango y el registro no está marcado como eliminado, agregar al vector
+            if (temp.getKey() >= keyBegin && temp.getKey() <= keyEnd && !temp.deleted) {
+                results.push_back(temp);
+            }
+        }
+    }
+
+    return results;
 }
+
 
 bool sequentialFile::insert(fixedRecord record) {
     fstream data(dataFile, ios::out | ios::in | ios::binary);
