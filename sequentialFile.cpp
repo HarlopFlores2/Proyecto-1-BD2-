@@ -46,8 +46,15 @@ void sequentialFile::load_data(const string & csvFile) {
 
 }
 
-void sequentialFile::print_all() {
-
+void sequentialFile::print_all(string file) {
+    fstream filet(file, ios::in | ios::binary);
+    int pos = 0;
+    fixedRecord temp;
+    while(filet >> temp){
+        pos++;
+        filet.seekg(pos * sizeRecord());
+        temp.print();
+    }
 }
 
 vector<fixedRecord> sequentialFile::search(int key) {
@@ -136,17 +143,16 @@ bool sequentialFile::insert(fixedRecord record) {
     fstream aux(auxFile, ios::out | ios::in | ios::binary);
     if (!data || !aux) return false;
     if (sizeAux == maxAuxSize) {
-        //merge_data();
+        merge_data();
         //data.close();
         //remove("dataFile.dat");
-        rename("dataFile2.dat", "dataFile.dat");
-        insert(record);
+        //rename("dataFile2.dat", "dataFile.dat");
+        //insert(record);
         return true;
     } else {
         // si la key no esta
         pair<int,int> prev = findLocation(record.getKey());
         if (prev.first == 0) {
-            cout<<"***** " << prev.second <<endl;
             // si la key esta en data
             data.seekg(prev.second * sizeRecord());
             fixedRecord temp;
@@ -192,6 +198,57 @@ bool sequentialFile::remove(int key) {
 }
 
 void sequentialFile::merge_data() {
+    fstream data(dataFile, ios::in | ios::binary);
+    fstream aux(auxFile, ios::in | ios::binary);
+    fstream data2("../dataFile2.dat", ios::out | ios::binary);
+    if (!data || !aux) return;
+    data.seekg(0, ios::end);
+    int newSize = maxAuxSize + (data.tellg()/sizeRecord());
+    int pos1 = 0, pos2 = 0;
+    data.seekg(0);
+    fixedRecord temp;
+    data >> temp;
+    if (!temp.deleted) {
+        fixedRecord temp1 = temp;
+        temp1.nextPosition = pos1+pos2+1 < newSize ? pos1+pos2+1: 0;
+        temp1.nextFile = pos1+pos2+1 < newSize ? 0 : 1;
+        data2.seekp(0);
+        data2 << temp1;
+        pos1++;
+    }
+    fixedRecord temp2 = temp;
+    while(pos1+pos2 < newSize) {
+        if(temp2.deleted) continue;
+        else if (temp2.nextFile == 0) {
+            data.seekg(temp2.nextPosition * sizeRecord());
+            data >> temp2;
+            fixedRecord temp3 = temp2;
+            temp3.nextPosition = pos1+pos2+1 < newSize ? pos1+pos2+1: 0;
+            temp3.nextFile = pos1+pos2+1 < newSize ? 0 : 1;
+            data2.seekp((pos1+pos2) * sizeRecord());
+            data2 << temp3;
+            pos1++;
+        } else {
+            while (temp2.nextFile == 1) {
+                aux.seekg(temp2.nextPosition * sizeRecord());
+                aux >> temp2;
+                fixedRecord temp3 = temp2;
+                temp3.nextPosition = pos1+pos2+1 < newSize ? pos1+pos2+1: 0;
+                temp3.nextFile = pos1+pos2+1 < newSize ? 0 : 1;
+                data2.seekp((pos1+pos2) * sizeRecord());
+                data2 << temp3;
+                pos2++;
+            }
+        }
+    }
+    data.close();
+    aux.close();
+    data2.close();
+    //remove("dataFile.dat");
+    //rename("dataFile2.dat", "dataFile.dat");
+    //remove("auxFile.dat");
+    //rename("auxFile2.dat", "auxFile.dat");
+    //sizeAux = 0;
 
 }
 

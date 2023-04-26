@@ -70,7 +70,7 @@ public:
     void load_data(const string&);
     void readRecordData(int pos);
     void readRecordAux(int pos);
-    void print_all();
+    void print_all(string file);
     pair<int,int> findLocation(int key);
     vector<fixedRecord> search(int key);
     vector<fixedRecord> range_search(int keyBegin, int keyEnd);
