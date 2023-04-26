@@ -201,9 +201,10 @@ bool sequentialFile::remove(int key) {
     
     if (!data || !aux) return false;
 
-    pair<int, int> loc = findLocation(key-1);
+    pair<int, int> loc = findLocation(key-1); // <file, position>
+    pair<int, int> locNext = findLocation(key); // <file, position>
 
-    if (loc.first == 0) {
+    if (loc.first == 0 && locNext.first == 0) {
         data.seekg(loc.second * sizeRecord());
         data >> temp;
         data >> tempNext;
@@ -212,10 +213,30 @@ bool sequentialFile::remove(int key) {
             tempNext.deleted = 1;
             return true;
         }
-    } else if (loc.first == 1) {
+    } else if (loc.first == 1 && locNext.first == 1) {
         aux.seekg(loc.second * sizeRecord());
         aux >> temp;
         aux >> tempNext;
+        if (tempNext.getKey() == key && !tempNext.deleted) {            
+            temp.nextPosition = tempNext.nextPosition;
+            tempNext.deleted = 1;
+            return true;
+        }
+    } else if (loc.first == 0 && locNext.first == 1){
+        data.seekg(loc.second * sizeRecord());
+        data >> temp;
+        aux.seekg(locNext.second * sizeRecord());
+        aux >> tempNext;
+        if (tempNext.getKey() == key && !tempNext.deleted) {            
+            temp.nextPosition = tempNext.nextPosition;
+            tempNext.deleted = 1;
+            return true;
+        }
+    } else if (loc.first == 1 && locNext.first == 0){
+        aux.seekg(loc.second * sizeRecord());
+        aux >> temp;
+        data.seekg(locNext.second * sizeRecord());
+        data >> tempNext;
         if (tempNext.getKey() == key && !tempNext.deleted) {            
             temp.nextPosition = tempNext.nextPosition;
             tempNext.deleted = 1;
