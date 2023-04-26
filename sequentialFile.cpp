@@ -195,26 +195,30 @@ bool sequentialFile::insert(fixedRecord record) {
 }
 
 bool sequentialFile::remove(int key) {
-    fixedRecord temp;
+    fixedRecord temp, tempNext;
     fstream data(dataFile, ios::in | ios::binary);
     fstream aux(auxFile, ios::in | ios::binary);
     
     if (!data || !aux) return false;
 
-    pair<int, int> loc = findLocation(key);
+    pair<int, int> loc = findLocation(key-1);
 
     if (loc.first == 0) {
         data.seekg(loc.second * sizeRecord());
         data >> temp;
-        if (temp.getKey() == key && !temp.deleted) {
-            temp.deleted = 1;
+        data >> tempNext;
+        if (tempNext.getKey() == key && !tempNext.deleted) {            
+            temp.nextPosition = tempNext.nextPosition;
+            tempNext.deleted = 1;
             return true;
         }
     } else if (loc.first == 1) {
         aux.seekg(loc.second * sizeRecord());
-        aux >> temp;        
-        if (temp.getKey() == key && !temp.deleted) {
-            temp.deleted = 1;
+        aux >> temp;
+        aux >> tempNext;
+        if (tempNext.getKey() == key && !tempNext.deleted) {            
+            temp.nextPosition = tempNext.nextPosition;
+            tempNext.deleted = 1;
             return true;
         }
     }
