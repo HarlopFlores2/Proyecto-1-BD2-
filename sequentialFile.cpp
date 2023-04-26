@@ -40,6 +40,7 @@ void sequentialFile::load_data(const string & csvFile) {
         temp.nextPosition = (i == len-1) ? 0 : offset;
         temp.nextFile = (i == len-1) ? 1 : 0;
         data << temp;
+        if(i==4) break;
     }
     data.close();
     aux.close();
@@ -194,6 +195,30 @@ bool sequentialFile::insert(fixedRecord record) {
 }
 
 bool sequentialFile::remove(int key) {
+    fixedRecord temp;
+    fstream data(dataFile, ios::in | ios::binary);
+    fstream aux(auxFile, ios::in | ios::binary);
+    
+    if (!data || !aux) return false;
+
+    pair<int, int> loc = findLocation(key);
+
+    if (loc.first == 0) {
+        data.seekg(loc.second * sizeRecord());
+        data >> temp;
+        if (temp.getKey() == key && !temp.deleted) {
+            temp.deleted = 1;
+            return true;
+        }
+    } else if (loc.first == 1) {
+        aux.seekg(loc.second * sizeRecord());
+        aux >> temp;        
+        if (temp.getKey() == key && !temp.deleted) {
+            temp.deleted = 1;
+            return true;
+        }
+    }
+
     return false;
 }
 
@@ -324,6 +349,5 @@ void sequentialFile::readRecordAux(int pos) {
     aux.close();
     record.print();
 }
-
 
 
