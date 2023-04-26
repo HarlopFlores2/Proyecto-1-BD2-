@@ -40,7 +40,6 @@ void sequentialFile::load_data(const string & csvFile) {
         temp.nextPosition = (i == len-1) ? 0 : offset;
         temp.nextFile = (i == len-1) ? 1 : 0;
         data << temp;
-        if(i==4) break;
     }
     data.close();
     aux.close();
@@ -74,7 +73,7 @@ bool sequentialFile::insert(fixedRecord record) {
         // si la key no esta
         pair<int,int> prev = findLocation(record.getKey());
         if (prev.first == 0) {
-            cout<<"*****" << prev.second <<endl;
+            cout<<"***** " << prev.second <<endl;
             // si la key esta en data
             data.seekg(prev.second * sizeRecord());
             fixedRecord temp;
@@ -85,9 +84,13 @@ bool sequentialFile::insert(fixedRecord record) {
             // actualizar puntero del anterior
             temp.nextPosition = sizeAux;
             temp.nextFile = 1;
+            data.seekp(prev.second * sizeRecord());
+            data << temp;
             aux.seekp(sizeAux * sizeRecord());
             aux << record;
             sizeAux++;
+            data.close();
+            aux.close();
         } else {
             // si la key esta en aux
             aux.seekg(prev.second * sizeRecord());
@@ -99,6 +102,8 @@ bool sequentialFile::insert(fixedRecord record) {
             // actualizar puntero del anterior
             temp.nextPosition = sizeAux;
             temp.nextFile = 1;
+            aux.seekp(prev.second * sizeRecord());
+            aux << temp;
             aux.seekp(sizeAux * sizeRecord());
             aux << record;
             sizeAux++;
@@ -134,15 +139,13 @@ pair<int, int> sequentialFile::findLocation(int key) {
     fixedRecord temp;
     data.seekg(0, ios::end);
     long sizeData = data.tellg();
-    long sizeAux = aux.tellg();
-    long sizeRecord = sizeof(temp);
     long l = 0;
-    long r = (sizeData / sizeRecord) - 1;
+    long r = (sizeData / sizeRecord()) - 1;
     long index = -1;
     long file = -1;
     while (l <= r) {
         long m = l + (r - l) / 2;
-        data.seekg(m * sizeRecord);
+        data.seekg(m * sizeRecord());
         data >> temp;
         if (temp.getKey() == key) {
             if (!temp.deleted){
@@ -162,9 +165,9 @@ pair<int, int> sequentialFile::findLocation(int key) {
     if (temp.nextFile == 1) {
         int nextFile = temp.nextFile;
         int nextPosition = temp.nextPosition;
-        fixedRecord tempAux;
         while (nextFile == 1) {
-            aux.seekg(nextPosition * this->sizeRecord());
+            fixedRecord tempAux;
+            aux.seekg(nextPosition * sizeRecord());
             aux >> tempAux;
             if (tempAux.getKey() == key) {
                 file = 1;
@@ -176,6 +179,7 @@ pair<int, int> sequentialFile::findLocation(int key) {
                 index = nextPosition;
                 file = 1;
                 nextPosition = tempAux.nextPosition;
+                nextFile = tempAux.nextFile;
             }
         }
     }
