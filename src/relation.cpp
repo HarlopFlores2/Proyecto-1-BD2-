@@ -1,3 +1,5 @@
+#include <cstddef>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -66,12 +68,20 @@ FileRelation::FileRelation(
       m_name(std::move(name)),
       m_filename(std::move(filename))
 {
+    if (std::filesystem::exists(filename))
+    {
+        return;
+    }
+
     std::ofstream of{filename, std::fstream::out | std::fstream::binary};
     if (of.bad())
     {
         throw std::runtime_error(
             "File " + std::quoted(filename.string())._M_string + " couldn't be created.");
     }
+
+    of.write(
+        reinterpret_cast<char const*>(&record_deleted_and_last), sizeof(record_not_deleted));
 }
 
 auto FileRelation::to_memory() -> MemoryRelation

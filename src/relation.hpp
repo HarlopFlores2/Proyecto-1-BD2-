@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <experimental/filesystem>
 #include <filesystem>
+#include <limits>
 #include <map>
 #include <vector>
 
@@ -36,6 +38,10 @@ struct MemoryRelation : public Relation
 
 struct FileRelation : public Relation
 {
+    constexpr static uint64_t const record_not_deleted = std::numeric_limits<uint64_t>::max();
+    constexpr static uint64_t const record_deleted_and_last =
+        std::numeric_limits<uint64_t>::max() - 1;
+
     std::string m_name;
     std::filesystem::path m_filename;
 
