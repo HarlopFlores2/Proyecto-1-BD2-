@@ -15,12 +15,17 @@
 
 using json = nlohmann::json;
 
+Relation::Relation(std::vector<Attribute> attributes, std::map<int, int> indexes)
+    : m_attributes{std::move(attributes)},
+      m_indexes{std::move(indexes)}
+{
+}
+
 MemoryRelation::MemoryRelation(
     std::vector<Attribute> attributes,
     std::map<int, int> indexes,
     std::vector<nlohmann::json> tuples)
-    : m_attributes(std::move(attributes)),
-      m_indexes(std::move(indexes)),
+    : Relation(std::move(attributes), std::move(indexes)),
       m_tuples(std::move(tuples))
 {
 }
@@ -57,8 +62,7 @@ FileRelation::FileRelation(
     std::map<int, int> indexes,
     std::string name,
     std::filesystem::path filename)
-    : m_attributes(std::move(attributes)),
-      m_indexes(std::move(indexes)),
+    : Relation(std::move(attributes), std::move(indexes)),
       m_name(std::move(name)),
       m_filename(std::move(filename))
 {
