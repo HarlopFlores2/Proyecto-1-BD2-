@@ -95,20 +95,37 @@ auto FileRelation::to_memory() -> MemoryRelation
 
     file.exceptions(std::ios::badbit);
 
-    std::vector<json> tuples;
+    // Skip over pointer to first deleted
+    file.seekg(sizeof(record_not_deleted), std::ios::cur);
 
+    std::vector<json> tuples;
     while (file.peek(), !file.eof())
     {
-        json tuple;
-        for (Attribute const& a : m_attributes)
+        uint64_t deleted_p;
+        file.read(reinterpret_cast<char*>(&deleted_p), sizeof(deleted_p));
+
+        // If record is active
+        if (deleted_p == record_not_deleted)
         {
-            json ja = a.read(file);
-            tuple.emplace_back(std::move(ja));
+            json tuple;
+            for (Attribute const& a : m_attributes)
+            {
+                json ja = a.read(file);
+                tuple.emplace_back(std::move(ja));
+            }
+            tuples.emplace_back(std::move(tuple));
         }
-        tuples.emplace_back(std::move(tuple));
+        // Else, record is read but discarded
+        else
+        {
+            for (Attribute const& a : m_attributes)
+            {
+                a.read(file);
+            }
+        }
     }
 
-    return MemoryRelation{m_attributes, m_indexes, tuples};
+    return MemoryRelation{m_attributes, m_indexes, std::move(tuples)};
 }
 
 void FileRelation::insert(nlohmann::json const& tuple)
