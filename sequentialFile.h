@@ -276,8 +276,8 @@ public:
         }
     }
 
-    bool sequentialFile::removeRecord(int key) {
-        fixedRecord temp, tempNext;
+    bool removeRecord(int key) {
+        fixedRecord<typeRecord, typeKey> temp, tempNext;
         fstream data(dataFile, ios::in | ios::binary);
         fstream aux(auxFile, ios::in | ios::binary);
 
