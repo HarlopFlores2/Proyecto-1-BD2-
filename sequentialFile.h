@@ -103,7 +103,6 @@ class sequentialFile {
     const char *dataFile = "../dataFile.dat";
     const char *auxFile = "../auxFile.dat";
     int maxAuxSize;
-    int sizeAux = 0;
 public:
     explicit sequentialFile(int maxAuxSize) : maxAuxSize(maxAuxSize) {};
 
@@ -224,6 +223,8 @@ public:
         fstream aux(auxFile, ios::out | ios::in | ios::binary);
         fstream data2("../dataFile2.dat", ios::out | ios::binary);
         if (!data || !aux) return false;
+        aux.seekg(0, ios::end);
+        long sizeAux = aux.tellg() / sizeRecord();
         if (sizeAux == maxAuxSize) {
             merge_data();
             data.close();
@@ -236,6 +237,8 @@ public:
         } else {
             // si la key no esta
             pair<int,int> prev = findLocation(record.getKey());
+            aux.seekg(0, ios::end);
+            long sizeAux = aux.tellg() / sizeRecord();
             if (prev.first == 0) {
                 // si la key esta en data
                 data.seekg(prev.second * sizeRecord());
@@ -252,7 +255,6 @@ public:
                 data << temp;
                 aux.seekp(sizeAux * sizeRecord());
                 aux << record;
-                sizeAux++;
                 data.close();
                 aux.close();
             } else {
@@ -271,7 +273,6 @@ public:
                 aux << temp;
                 aux.seekp(sizeAux * sizeRecord());
                 aux << record;
-                sizeAux++;
             }
         }
     }
@@ -376,9 +377,6 @@ public:
                 }
             }
         }
-        //remove("auxFile.dat");
-        //rename("auxFile2.dat", "auxFile.dat");
-        sizeAux = 0;
     }
 
     void readRecordData(int pos) {
