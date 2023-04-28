@@ -23,12 +23,12 @@ void INTEGER::write(std::ostream& out, json const& j) const
     out.write(reinterpret_cast<char const*>(&n), sizeof(n));
 }
 
-auto INTEGER::to_specifier() -> std::string
+auto INTEGER::to_specifier() const -> std::string
 {
     return {"INTEGER"};
 }
 
-auto INTEGER::valid_json(json const& j) -> bool
+auto INTEGER::valid_json(json const& j) const -> bool
 {
     return j.type() == json::value_t::number_integer;
 }
@@ -53,12 +53,12 @@ void VARCHAR::write(std::ostream& out, json const& j) const
     }
 }
 
-auto VARCHAR::to_specifier() -> std::string
+auto VARCHAR::to_specifier() const -> std::string
 {
     return {"VARCHAR(" + std::to_string(this->size) + ")"};
 }
 
-auto VARCHAR::valid_json(json const& j) -> bool
+auto VARCHAR::valid_json(json const& j) const -> bool
 {
     return j.type() == json::value_t::string;
 }
@@ -73,12 +73,12 @@ void Attribute::write(std::ostream& out, json const& j) const
     std::visit([&](auto& a) { return a.write(out, j); }, type);
 }
 
-auto Attribute::to_specifier() -> std::string
+auto Attribute::to_specifier() const -> std::string
 {
     return std::visit([&](auto& a) { return a.to_specifier(); }, type);
 }
 
-auto Attribute::valid_json(json const& j) -> bool
+auto Attribute::valid_json(json const& j) const -> bool
 {
     return std::visit([&](auto& a) { return a.valid_json(j); }, type);
 }
