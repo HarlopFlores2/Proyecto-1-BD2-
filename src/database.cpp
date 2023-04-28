@@ -56,22 +56,15 @@ auto DataBase::create_relation(
     std::string const& name, std::vector<Attribute> attributes, std::string primary_key)
     -> FileRelation&
 {
-    auto filename = m_path / generate_relation_filename(name);
-    auto [it, inserted_p] = m_relations.insert({
-        name, FileRelation{std::move(attributes), {}, name, filename}
-    });
-
-    if (!inserted_p)
+    if (m_relations.count(name) != 0)
     {
         throw std::runtime_error("Relation " + name + " already exists.");
     }
 
-    std::ofstream of{filename, std::fstream::out | std::fstream::binary};
-    if (of.bad())
-    {
-        throw std::runtime_error(
-            "File " + std::quoted(filename.string())._M_string + " couldn't be created.");
-    }
+    auto filename = m_path / generate_relation_filename(name);
+    auto [it, inserted_p] = m_relations.insert({
+        name, FileRelation{std::move(attributes), {}, name, filename}
+    });
 
     m_db_info["relations"][name]["pk"] = primary_key;
     json j_attributes = json::object();

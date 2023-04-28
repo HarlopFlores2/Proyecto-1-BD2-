@@ -66,6 +66,12 @@ FileRelation::FileRelation(
       m_name(std::move(name)),
       m_filename(std::move(filename))
 {
+    std::ofstream of{filename, std::fstream::out | std::fstream::binary};
+    if (of.bad())
+    {
+        throw std::runtime_error(
+            "File " + std::quoted(filename.string())._M_string + " couldn't be created.");
+    }
 }
 
 auto FileRelation::to_memory() -> MemoryRelation
