@@ -56,4 +56,6 @@ struct FileRelation : public Relation
     auto to_memory() -> MemoryRelation;
 
     void insert(nlohmann::json const& tuple);
+
+    [[nodiscard]] auto calculate_offset(uint64_t index) const -> uint64_t;
 };
