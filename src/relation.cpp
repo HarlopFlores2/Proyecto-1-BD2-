@@ -120,13 +120,10 @@ auto FileRelation::to_memory() -> MemoryRelation
             }
             tuples.emplace_back(std::move(tuple));
         }
-        // Else, record is read but discarded
+        // Else, record is skipped over
         else
         {
-            for (Attribute const& a : m_attributes)
-            {
-                a.read(file);
-            }
+            file.seekg(m_tuple_size);
         }
     }
 
