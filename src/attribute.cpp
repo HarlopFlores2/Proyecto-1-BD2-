@@ -33,21 +33,26 @@ auto INTEGER::valid_json(json const& j) const -> bool
     return j.type() == json::value_t::number_integer;
 }
 
+auto INTEGER::size() const -> uint64_t
+{
+    return sizeof(INTEGER::type);
+}
+
 auto VARCHAR::read(std::istream& in) const -> json
 {
-    auto ret = new type[size];
-    in.read(reinterpret_cast<char*>(ret), size * sizeof(type));
+    auto ret = new type[n_chars];
+    in.read(reinterpret_cast<char*>(ret), n_chars * sizeof(type));
     return json{ret};
 }
 
 void VARCHAR::write(std::ostream& out, json const& j) const
 {
     std::string s = j.get<std::string>();
-    auto s_to_write = std::min(s.size(), size);
+    auto s_to_write = std::min(s.size(), n_chars);
     out.write(s.data(), s_to_write);
 
     char null = '\0';
-    for (size_t i = 0; i < size - s_to_write; i++)
+    for (size_t i = 0; i < n_chars - s_to_write; i++)
     {
         out.write(&null, 1);
     }
@@ -55,12 +60,17 @@ void VARCHAR::write(std::ostream& out, json const& j) const
 
 auto VARCHAR::to_specifier() const -> std::string
 {
-    return {"VARCHAR(" + std::to_string(this->size) + ")"};
+    return {"VARCHAR(" + std::to_string(this->n_chars) + ")"};
 }
 
 auto VARCHAR::valid_json(json const& j) const -> bool
 {
     return j.type() == json::value_t::string;
+}
+
+auto VARCHAR::size() const -> uint64_t
+{
+    return sizeof(VARCHAR::type) * n_chars;
 }
 
 auto Attribute::read(std::istream& in) const -> json
@@ -81,4 +91,9 @@ auto Attribute::to_specifier() const -> std::string
 auto Attribute::valid_json(json const& j) const -> bool
 {
     return std::visit([&](auto& a) { return a.valid_json(j); }, type);
+}
+
+auto Attribute::size() const -> uint64_t
+{
+    return std::visit([&](auto& a) { return a.size(); }, type);
 }

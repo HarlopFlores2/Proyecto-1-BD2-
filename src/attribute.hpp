@@ -17,14 +17,16 @@ struct INTEGER
     void write(std::ostream& out, nlohmann::json const& j) const;
 
     [[nodiscard]] auto to_specifier() const -> std::string;
+
     [[nodiscard]] auto valid_json(nlohmann::json const& j) const -> bool;
 
+    [[nodiscard]] auto size() const -> uint64_t;
 };
 
 struct VARCHAR
 {
     using type = char;
-    uint64_t size;
+    uint64_t n_chars;
 
     auto read(std::istream& in) const -> nlohmann::json;
     void write(std::ostream& out, nlohmann::json const& j) const;
@@ -32,6 +34,8 @@ struct VARCHAR
     [[nodiscard]] auto to_specifier() const -> std::string;
 
     [[nodiscard]] auto valid_json(nlohmann::json const& j) const -> bool;
+
+    [[nodiscard]] auto size() const -> uint64_t;
 };
 
 using attribute_type = std::variant<INTEGER, VARCHAR>;
@@ -45,6 +49,8 @@ struct Attribute
     void write(std::ostream& out, nlohmann::json const& j) const;
 
     [[nodiscard]] auto to_specifier() const -> std::string;
+
     [[nodiscard]] auto valid_json(nlohmann::json const& j) const -> bool;
 
+    [[nodiscard]] auto size() const -> uint64_t;
 };
