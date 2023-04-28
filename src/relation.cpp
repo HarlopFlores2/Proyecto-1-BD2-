@@ -161,3 +161,9 @@ void FileRelation::insert(nlohmann::json const& tuple)
         a_it->write(of, *t_it);
     }
 }
+
+auto FileRelation::calculate_offset(uint64_t index) const -> uint64_t
+{
+    return sizeof(record_deleted_and_last)
+           + index * (sizeof(record_deleted_and_last) + m_tuple_size);
+}
