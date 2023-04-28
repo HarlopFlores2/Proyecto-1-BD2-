@@ -185,6 +185,32 @@ void FileRelation::insert(nlohmann::json const& tuple)
     }
 }
 
+auto FileRelation::remove(uint64_t index) -> bool
+{
+    std::fstream file{m_filename, std::ios::in | std::ios::out | std::ios::binary};
+
+    uint64_t offset = calculate_offset(index);
+    file.seekg(offset, std::ios::beg);
+
+    size_t deleted_p = 0;
+    file.read(reinterpret_cast<char*>(&deleted_p), sizeof(deleted_p));
+
+    if (deleted_p != record_not_deleted)
+    {
+        return false;
+    }
+
+    file.seekg(0, std::ios::beg);
+    file.read(reinterpret_cast<char*>(&deleted_p), sizeof(deleted_p));
+    file.seekg(0, std::ios::beg);
+    file.write(reinterpret_cast<char const*>(&index), sizeof(index));
+
+    file.seekg(offset, std::ios::beg);
+    file.write(reinterpret_cast<char const*>(&deleted_p), sizeof(deleted_p));
+
+    return true;
+}
+
 auto FileRelation::calculate_offset(uint64_t index) const -> uint64_t
 {
     return sizeof(record_deleted_and_last)
