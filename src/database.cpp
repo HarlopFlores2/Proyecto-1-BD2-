@@ -68,7 +68,7 @@ auto DataBase::create_relation(
 
     m_db_info["relations"][name]["pk"] = primary_key;
     json j_attributes = json::object();
-    for (Attribute a : it->second.m_attributes)
+    for (Attribute const& a : it->second.m_attributes)
     {
         j_attributes[a.name] = a.to_specifier();
     }
