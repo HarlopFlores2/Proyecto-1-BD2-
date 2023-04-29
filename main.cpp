@@ -9,7 +9,7 @@ int main(){
     fixedRecord1.load(f1);
     fixedRecord2.load(f2);
     fixedRecord3.load(f3);
-    sequentialFile<Record, int> SequentialFile(3);
+    sequentialFile<Record, int> SequentialFile(2);
 
     //Prueba 1 - limpiar campos en data y aux
     SequentialFile.load_data("../prueba.csv");
@@ -21,8 +21,8 @@ int main(){
     //SequentialFile.readRecordData(0);
     SequentialFile.print_all("../dataFile.dat");
     SequentialFile.readRecordAux(0);
-    SequentialFile.readRecordAux(1);
-    SequentialFile.readRecordAux(2);
+    //SequentialFile.readRecordAux(1);
+    //SequentialFile.readRecordAux(2);
     //cout << SequentialFile.findLocation(0).second << endl;
 
 

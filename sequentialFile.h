@@ -237,13 +237,15 @@ public:
             remove("..//dataFile.dat");
             data2.close();
             rename("..//dataFile2.dat", "..//dataFile.dat");
-            aux.clear();
+            ofstream auxTemp;
+            auxTemp.open(auxFile, ios::out | ios::trunc);
+            auxTemp.close();
             insert(record);
             return true;
         } else {
             // si la key no esta
             pair<int,int> prev = findLocation(record.getKey());
-            cout << prev.first << " " << prev.second << endl;
+            //cout << prev.first << " " << prev.second << endl;
             aux.seekg(0, ios::end);
             long sizeAux = aux.tellg() / sizeRecord();
             if (prev.first == 0) {
@@ -345,44 +347,37 @@ public:
         fstream aux(auxFile, ios::in | ios::binary);
         fstream data2("../dataFile2.dat", ios::out | ios::binary);
         if (!data || !aux) return;
+        fixedRecord<typeRecord, typeKey> header, temp;
         data.seekg(0, ios::end);
         int newSize = maxAuxSize + (data.tellg()/sizeRecord());
-        int pos1 = 0, pos2 = 0;
         data.seekg(0);
-        fixedRecord<typeRecord, typeKey> temp;
-        data >> temp;
-        if (!temp.deleted) {
-            fixedRecord<typeRecord, typeKey> temp1 = temp;
-            temp1.nextPosition = pos1+pos2+1 < newSize ? pos1+pos2+1: -1;
-            temp1.nextFile = pos1+pos2+1 < newSize ? 0 : -1;
-            data2.seekp(0);
-            data2 << temp1;
-            pos1++;
-        }
-        fixedRecord<typeRecord, typeKey> temp2 = temp;
-        while(pos1+pos2 < newSize) {
-            if(temp2.deleted) continue;
-            else if (temp2.nextFile == 0) {
-                data.seekg(temp2.nextPosition * sizeRecord());
-                data >> temp2;
-                fixedRecord<typeRecord, typeKey> temp3 = temp2;
-                temp3.nextPosition = pos1+pos2+1 < newSize ? pos1+pos2+1: -1;
-                temp3.nextFile = pos1+pos2+1 < newSize ? 0 : -1;
-                data2.seekp((pos1+pos2) * sizeRecord());
-                data2 << temp3;
-                pos1++;
-            } else {
-                while (temp2.nextFile == 1) {
-                    aux.seekg(temp2.nextPosition * sizeRecord());
-                    aux >> temp2;
-                    fixedRecord<typeRecord,typeKey> temp3 = temp2;
-                    temp3.nextPosition = pos1+pos2+1 < newSize ? pos1+pos2+1: -1;
-                    temp3.nextFile = pos1+pos2+1 < newSize ? 0 : -1;
-                    data2.seekp((pos1+pos2) * sizeRecord());
-                    data2 << temp3;
-                    pos2++;
-                }
+        data >> header;
+        temp = header;
+        data2.seekg(0);
+        data2 << header;
+        int pos = 1;
+        while(temp.nextPosition!=-1 and temp.nextFile!=-1){
+            fixedRecord<typeRecord, typeKey> curr;
+            if (temp.nextFile == 0) {
+                data.seekg(temp.nextPosition * sizeRecord());
+                data >> curr;
+                fixedRecord<typeRecord, typeKey> curr1 = curr;
+                curr1.nextPosition = pos+1 < newSize ? pos+1: -1;
+                curr1.nextFile = pos+1 < newSize ? 0 : -1;
+                data2.seekp(pos * sizeRecord());
+                data2 << curr1;
+            }else if (temp.nextFile == 1) {
+                aux.seekg(temp.nextPosition * sizeRecord());
+                aux >> curr;
+                fixedRecord<typeRecord, typeKey> curr1 = curr;
+                curr1.nextPosition = pos+1 < newSize ? pos+1: -1;
+                curr1.nextFile = pos+1 < newSize ? 0 : -1;
+                data2.seekp(pos * sizeRecord());
+                data2 << curr1;
             }
+            temp.nextFile = curr.nextFile;
+            temp.nextPosition = curr.nextPosition;
+            pos++;
         }
     }
 
