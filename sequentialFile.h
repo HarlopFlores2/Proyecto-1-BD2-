@@ -107,19 +107,24 @@ public:
     explicit sequentialFile(int maxAuxSize) : maxAuxSize(maxAuxSize) {};
 
     void load_data(const string & csvFile) {
-        fixedRecord<typeRecord,typeKey> temp;
+        fixedRecord<typeRecord,typeKey> temp,header;
         fstream data(dataFile, ios::out | ios::binary);
         fstream aux(auxFile, ios::out | ios::binary);
         if (!data || !aux) return;
         rapidcsv::Document document(csvFile);
         auto len = document.GetRowCount();
-        long offset = 0;
+        long offset = 1;
+        header.nextFile = 0;
+        header.nextPosition = 1;
+        data.seekp(0);
+        data << header;
         for (int i = 0; i < len; i++) {
             vector<string> row = document.GetRow<string>(i);
             temp.load(row);
             offset++;
             temp.nextPosition = (i == len-1) ? -1 : offset;
             temp.nextFile = (i == len-1) ? -1 : 0;
+            data.seekp((i+1) * sizeRecord());
             data << temp;
         }
         data.close();
@@ -137,6 +142,7 @@ public:
             filet.seekg(pos * sizeRecord());
             temp.print();
         }
+        cout <<"*****************\n";
     }
 
     vector<fixedRecord<typeRecord,typeKey>> search(int key) {
@@ -237,6 +243,7 @@ public:
         } else {
             // si la key no esta
             pair<int,int> prev = findLocation(record.getKey());
+            cout << prev.first << " " << prev.second << endl;
             aux.seekg(0, ios::end);
             long sizeAux = aux.tellg() / sizeRecord();
             if (prev.first == 0) {
@@ -416,7 +423,7 @@ public:
         if (index != -1) return {file, index};
         else {
             file = 0;
-            index = l-1;
+            index = max(0l, l-1);
         }
         if (temp.nextFile == 0) return {file,index};
         if (temp.nextFile == 1) {
@@ -426,11 +433,11 @@ public:
                 fixedRecord<typeRecord, typeKey> tempAux;
                 aux.seekg(nextPosition * sizeRecord());
                 aux >> tempAux;
-                if (tempAux.getKey() == key) {
+                if (tempAux.getKey() > key){
+                    break;
+                }else if (tempAux.getKey() == key) {
                     file = 1;
                     index = nextPosition;
-                    break;
-                } else if (temp.getKey() > key) {
                     break;
                 } else {
                     index = nextPosition;
