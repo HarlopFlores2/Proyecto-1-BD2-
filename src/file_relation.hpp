@@ -18,6 +18,8 @@ struct FileRelation : public Relation
     constexpr static uint64_t const record_deleted_and_last =
         std::numeric_limits<uint64_t>::max() - 1;
 
+    uint64_t const m_record_size;
+
     std::string m_name;
     std::filesystem::path m_filename;
 
