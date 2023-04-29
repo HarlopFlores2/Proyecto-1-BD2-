@@ -24,6 +24,7 @@ FileRelation::FileRelation(
     std::string name,
     std::filesystem::path filename)
     : Relation(std::move(attributes), std::move(indexes)),
+      m_record_size(m_tuple_size + sizeof(record_not_deleted)),
       m_name(std::move(name)),
       m_filename(std::move(filename))
 {
@@ -167,6 +168,5 @@ auto FileRelation::remove(uint64_t index) -> bool
 
 auto FileRelation::calculate_offset(uint64_t index) const -> uint64_t
 {
-    return sizeof(record_deleted_and_last)
-           + index * (sizeof(record_deleted_and_last) + m_tuple_size);
+    return sizeof(record_deleted_and_last) + index * m_record_size;
 }
