@@ -3,8 +3,10 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
+#include <ios>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -17,6 +19,132 @@
 #include "memory_relation.hpp"
 
 using json = nlohmann::json;
+
+FileRelation::Iterator::Iterator(
+    std::string const& filename, uint64_t file_offset, FileRelation const* fr)
+    : m_filename{filename},
+      m_file{filename, std::ios::binary | std::ios::in},
+      m_file_offset{file_offset},
+      m_fr{fr},
+      m_value_read{}
+{
+    m_file.exceptions(std::ios::failbit);
+
+    // Make sure we start with the first valid tuple
+    this->advance_until_next_valid();
+}
+
+FileRelation::Iterator::Iterator(Iterator const& it)
+    : Iterator{it.m_filename, it.m_file_offset, it.m_fr}
+{
+}
+
+auto FileRelation::Iterator::operator*() const -> reference
+{
+    if (m_end)
+    {
+        throw std::runtime_error("Dereferencing iterator past end.");
+    }
+
+    if (!m_value_read.has_value())
+    {
+        m_file.seekg(m_file_offset);
+
+        uint64_t deleted_p = 0;
+        m_file.read(reinterpret_cast<char*>(&deleted_p), sizeof(deleted_p));
+
+        json tuple;
+        for (Attribute const& a : m_fr->m_attributes)
+        {
+            json ja = a.read(m_file);
+            tuple.emplace_back(std::move(ja));
+        }
+        m_value_read.emplace(std::move(tuple));
+    }
+
+    return *m_value_read;
+}
+
+auto FileRelation::Iterator::operator->() const -> pointer
+{
+    return std::addressof(**this);
+}
+
+auto FileRelation::Iterator::operator++() -> Iterator&
+{
+    if (m_end)
+    {
+        return *this;
+    }
+
+    m_file_offset += m_fr->m_record_size;
+    this->advance_until_next_valid();
+
+    return *this;
+}
+
+auto FileRelation::Iterator::operator++(int) -> Iterator
+{
+    Iterator it{*this};
+    ++it;
+    return it;
+}
+
+auto FileRelation::Iterator::operator--() -> Iterator&
+{
+    if (m_end)
+    {
+        m_file.seekg(0, std::ios::end);
+        m_file_offset = m_file.tellg();
+    }
+
+    uint64_t original_offset = m_file_offset;
+    while (m_file_offset - sizeof(FileRelation::record_deleted_and_last) >= m_fr->m_record_size)
+    {
+        m_file_offset -= m_fr->m_record_size;
+
+        m_file.seekg(m_file_offset, std::ios::beg);
+        uint64_t deleted_p = 0;
+        m_file.read(reinterpret_cast<char*>(&deleted_p), sizeof(deleted_p));
+
+        if (deleted_p == FileRelation::record_not_deleted)
+        {
+            m_end = false;
+            return *this;
+        }
+    }
+
+    // Decrementing a pointer to the first element has no effect.
+    m_file_offset = original_offset;
+
+    return *this;
+}
+
+auto FileRelation::Iterator::operator--(int) -> Iterator
+{
+    Iterator it{*this};
+    --it;
+    return it;
+}
+
+void FileRelation::Iterator::advance_until_next_valid()
+{
+    uint64_t deleted_p = 0;
+    while (m_file.peek(), !m_file.eof())
+    {
+        m_file.seekg(m_file_offset, std::ios::beg);
+        m_file.read(reinterpret_cast<char*>(&deleted_p), sizeof(deleted_p));
+
+        if (deleted_p == FileRelation::record_not_deleted)
+        {
+            return;
+        }
+
+        m_file_offset += m_fr->m_record_size;
+    }
+
+    m_end = true;
+}
 
 FileRelation::FileRelation(
     std::vector<Attribute> attributes,
