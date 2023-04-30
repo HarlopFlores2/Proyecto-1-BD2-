@@ -8,6 +8,69 @@
 #include "json.hpp"
 #include "memory_relation.hpp"
 
+MemoryRelation::Iterator::Iterator(MemoryRelation const* mr, uint64_t index)
+    : m_mr(mr),
+      m_index(index)
+{
+}
+
+MemoryRelation::Iterator::Iterator(Iterator const& it)
+    : Iterator{it.m_mr, it.m_index}
+{
+}
+
+auto MemoryRelation::Iterator::operator*() const -> reference
+{
+    return m_mr->m_tuples.at(m_index);
+}
+
+auto MemoryRelation::Iterator::operator->() const -> pointer
+{
+    return std::addressof(**this);
+}
+
+auto MemoryRelation::Iterator::operator++() -> Iterator&
+{
+    ++m_index;
+
+    return *this;
+}
+
+auto MemoryRelation::Iterator::operator++(int) -> Iterator
+{
+    Iterator it{*this};
+    ++it;
+    return it;
+}
+
+auto MemoryRelation::Iterator::operator--() -> Iterator&
+{
+    --m_index;
+
+    return *this;
+}
+
+auto MemoryRelation::Iterator::operator--(int) -> Iterator
+{
+    Iterator it{*this};
+    --it;
+    return it;
+}
+
+auto operator==(MemoryRelation::Iterator const& a, MemoryRelation::Iterator const& b) -> bool
+{
+    if (a.m_mr != b.m_mr)
+    {
+        return false;
+    }
+    return a.m_index == b.m_index;
+}
+
+auto operator!=(MemoryRelation::Iterator const& a, MemoryRelation::Iterator const& b) -> bool
+{
+    return !(a == b);
+}
+
 MemoryRelation::MemoryRelation(
     std::vector<Attribute> attributes,
     std::map<int, int> indexes,
