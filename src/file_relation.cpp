@@ -125,6 +125,24 @@ auto FileRelation::Iterator::operator--(int) -> Iterator
     return it;
 }
 
+auto operator==(FileRelation::Iterator const& a, FileRelation::Iterator const& b) -> bool
+{
+    if (a.m_fr != b.m_fr)
+    {
+        return false;
+    }
+    if (a.m_end == true)
+    {
+        return b.m_end == true;
+    }
+    return a.m_file_offset == b.m_file_offset;
+}
+
+auto operator!=(FileRelation::Iterator const& a, FileRelation::Iterator const& b) -> bool
+{
+    return !(a == b);
+}
+
 void FileRelation::Iterator::advance_until_next_valid()
 {
     uint64_t deleted_p = 0;
