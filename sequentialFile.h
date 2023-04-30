@@ -30,7 +30,6 @@ void readFromConsole(char buffer[], int size) {
 }
 
 
-
 struct Record {
     int line;
     int documentID;
@@ -40,6 +39,7 @@ struct Record {
     float discount;
     int customer;
     int quantity;
+    
     void load(vector<string> data){
         line = stoi(data[0]);
         documentID = stoi(data[1]);
@@ -77,7 +77,7 @@ struct fixedRecord{
     void print(){
         record.print();
         cout << "whatFile: " << whatFile << endl;
-        cout << "nextFIle: " << nextFile << endl;
+        cout << "nextFile: " << nextFile << endl;
         cout << "nextPosition: " << nextPosition << endl;
         cout << "deleted: " << deleted << endl;
     }
@@ -287,58 +287,63 @@ public:
     }
 
     bool removeRecord(int key) {
-        fixedRecord<typeRecord, typeKey> temp, tempNext;
-        fstream data(dataFile, ios::in | ios::binary);
-        fstream aux(auxFile, ios::in | ios::binary);
-
+        fstream data(dataFile, ios::in | ios::out | ios::binary);
+        fstream aux(auxFile, ios::in | ios::out | ios::binary);
         if (!data || !aux) return false;
-
-        pair<int, int> loc = findLocation(key-1); // <file, position>
-        pair<int, int> locNext = findLocation(key); // <file, position>
-
-        if (loc.first == 0 && locNext.first == 0) {
+        
+        fixedRecord<typeRecord, typeKey> tempPrev, temp;
+        pair<int, int> loc = findLocation(key); // <file, position>
+        if(loc.first == 0){
             data.seekg(loc.second * sizeRecord());
             data >> temp;
-            data.seekg(locNext.second * sizeRecord());
-            data >> tempNext;
-            if (tempNext.getKey() == key && !tempNext.deleted) {
-                temp.nextPosition = tempNext.nextPosition;
-                tempNext.deleted = 1;
-                return true;
-            }
-        } else if (loc.first == 1 && locNext.first == 1) {
+        }else if(loc.first == 1){
             aux.seekg(loc.second * sizeRecord());
             aux >> temp;
-            aux.seekg(locNext.second * sizeRecord());
-            aux >> tempNext;
-            if (tempNext.getKey() == key && !tempNext.deleted) {
-                temp.nextPosition = tempNext.nextPosition;
-                tempNext.deleted = 1;
-                return true;
-            }
-        } else if (loc.first == 0 && locNext.first == 1){
-            data.seekg(loc.second * sizeRecord());
-            data >> temp;
-            aux.seekg(locNext.second * sizeRecord());
-            aux >> tempNext;
-            if (tempNext.getKey() == key && !tempNext.deleted) {
-                temp.nextPosition = tempNext.nextPosition;
-                tempNext.deleted = 1;
-                return true;
-            }
-        } else if (loc.first == 1 && locNext.first == 0){
-            aux.seekg(loc.second * sizeRecord());
-            aux >> temp;
-            data.seekg(locNext.second * sizeRecord());
-            data >> tempNext;
-            if (tempNext.getKey() == key && !tempNext.deleted) {
-                temp.nextPosition = tempNext.nextPosition;
-                tempNext.deleted = 1;
-                return true;
-            }
+        }
+        
+        if(temp.getKey() != key || temp.deleted){
+            cerr << "No existe registro con ese key\n";
+            return false;
+        }
+        
+        pair<int, int> locPrev = findLocation(key-1); // <file, position>
+        if (locPrev.first == 0) {
+            data.seekg(locPrev.second * sizeRecord());
+            data >> tempPrev;
+        } else if (locPrev.first == 1) {
+            aux.seekg(locPrev.second * sizeRecord());
+            aux >> tempPrev;
         }
 
-        return false;
+        tempPrev.nextFile = temp.nextFile;
+        tempPrev.nextPosition = temp.nextPosition;
+        temp.deleted = 1;
+        
+        if (locPrev.first == 0 && loc.first == 0) {
+            data.seekp(locPrev.second * sizeRecord());
+            data << tempPrev;            
+            data.seekp(loc.second * sizeRecord());
+            data << temp;
+        } else if (locPrev.first == 1 && loc.first == 1) {
+            aux.seekp(locPrev.second * sizeRecord());
+            aux << tempPrev;
+            aux.seekp(loc.second * sizeRecord());
+            aux << temp;
+        } else if (locPrev.first == 0 && loc.first == 1){            
+            data.seekp(locPrev.second * sizeRecord());
+            data << tempPrev;            
+            aux.seekp(loc.second * sizeRecord());
+            aux << temp;
+        } else if (locPrev.first == 1 && loc.first == 0){            
+            aux.seekp(locPrev.second * sizeRecord());
+            aux << tempPrev;
+            data.seekp(loc.second * sizeRecord());
+            data << temp;
+        }
+
+        data.close();
+        aux.close();
+        return true;
     }
 
 
