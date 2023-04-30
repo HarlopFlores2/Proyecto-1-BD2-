@@ -6,6 +6,9 @@
 
 int main(){
     extendibleHash<Record> ExtendibleHash;
+    ExtendibleHash.load();
+    // cambien el globalDepth para probar
+    /*
     vector<string> f1 = {"1", "6", "3", "4", "5", "6", "7", "8"};
     vector<string> f2 = {"11", "8", "31", "41", "51", "61", "71", "81"};
     vector<string> f3 = {"11", "3", "31", "41", "51", "61", "71", "81"};
@@ -25,7 +28,6 @@ int main(){
     record7.load(f7);
     record8.load(f8);
     record9.load(f9);
-    ExtendibleHash.load();
     ExtendibleHash.insert(record1);
     ExtendibleHash.insert(record2);
     ExtendibleHash.insert(record3);
@@ -35,6 +37,7 @@ int main(){
     ExtendibleHash.insert(record7);
     ExtendibleHash.insert(record8);
     ExtendibleHash.insert(record9);
+    */
     ExtendibleHash.printBucket("0");
     ExtendibleHash.printBucket("1");
     ExtendibleHash.printBucket("00");
@@ -43,4 +46,6 @@ int main(){
     ExtendibleHash.printBucket("11");
     ExtendibleHash.printBucket("010");
     ExtendibleHash.printBucket("110");
+    ExtendibleHash.printBucket("001");
+    ExtendibleHash.printBucket("101");
 }
