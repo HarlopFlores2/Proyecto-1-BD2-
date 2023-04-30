@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <map>
 #include <utility>
 #include <vector>
@@ -8,10 +9,13 @@
 Relation::Relation(std::vector<Attribute> attributes, std::map<int, int> indexes)
     : m_attributes{std::move(attributes)},
       m_indexes{std::move(indexes)},
-      m_tuple_size{0}
+      m_tuple_size{[&]() {
+          uint64_t ret = 0;
+          for (Attribute const& a : m_attributes)
+          {
+              ret += a.size();
+          }
+          return ret;
+      }()}
 {
-    for (Attribute const& a : m_attributes)
-    {
-        m_tuple_size += a.size();
-    }
 }
