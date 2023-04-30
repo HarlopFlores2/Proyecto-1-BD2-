@@ -74,6 +74,7 @@ struct FileRelation : public Relation
 
     void insert(nlohmann::json const& tuple);
     auto remove(uint64_t index) -> bool;
+    [[nodiscard]] auto read(uint64_t index) const -> nlohmann::json;
 
     [[nodiscard]] auto calculate_offset(uint64_t index) const -> uint64_t;
 };
