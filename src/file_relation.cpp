@@ -172,16 +172,16 @@ FileRelation::FileRelation(
       m_name(std::move(name)),
       m_filename(std::move(filename))
 {
-    if (std::filesystem::exists(filename))
+    if (std::filesystem::exists(m_filename))
     {
         return;
     }
 
-    std::ofstream of{filename, std::fstream::out | std::fstream::binary};
+    std::ofstream of{m_filename, std::fstream::out | std::fstream::binary};
     if (of.bad())
     {
         throw std::runtime_error(
-            "File " + std::quoted(filename.string())._M_string + " couldn't be created.");
+            "File " + std::quoted(m_filename.string())._M_string + " couldn't be created.");
     }
 
     of.write(
