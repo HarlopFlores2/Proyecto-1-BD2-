@@ -310,6 +310,26 @@ auto FileRelation::remove(uint64_t index) -> bool
     return true;
 }
 
+auto FileRelation::read(uint64_t index) const -> json
+{
+    // Does not verify whether the tuple is deleted
+
+    std::ifstream file{m_filename, std::ios::in | std::ios::binary};
+
+    uint64_t offset = calculate_offset(index);
+    file.seekg(offset, std::ios::beg);
+    file.seekg(sizeof(record_deleted_and_last), std::ios::cur);
+
+    json tuple;
+    for (Attribute const& a : m_attributes)
+    {
+        json ja = a.read(file);
+        tuple.emplace_back(std::move(ja));
+    }
+
+    return tuple;
+}
+
 auto FileRelation::calculate_offset(uint64_t index) const -> uint64_t
 {
     return sizeof(record_deleted_and_last) + index * m_record_size;
