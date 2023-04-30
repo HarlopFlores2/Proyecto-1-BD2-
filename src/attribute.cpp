@@ -1,6 +1,9 @@
 #include <cstdint>
+#include <functional>
 #include <istream>
 #include <ostream>
+#include <regex>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <variant>
@@ -38,6 +41,16 @@ auto INTEGER::size() const -> uint64_t
     return sizeof(INTEGER::type);
 }
 
+auto INTEGER::from_specifier(std::string const& specifier) -> std::optional<INTEGER>
+{
+    if (specifier == "INTEGER")
+    {
+        return {INTEGER{}};
+    }
+
+    return {};
+}
+
 auto VARCHAR::read(std::istream& in) const -> json
 {
     auto ret = new type[n_chars];
@@ -71,6 +84,49 @@ auto VARCHAR::valid_json(json const& j) const -> bool
 auto VARCHAR::size() const -> uint64_t
 {
     return sizeof(VARCHAR::type) * n_chars;
+}
+
+auto VARCHAR::from_specifier(std::string const& specifier) -> std::optional<VARCHAR>
+{
+    std::regex re{R"(VARCHAR\((\d+)\))"};
+    std::cmatch m;
+
+    if (!std::regex_match(specifier.c_str(), m, re))
+    {
+        return {};
+    }
+
+    uint64_t n_digits = std::stoull(m[1]);
+
+    return {VARCHAR{n_digits}};
+}
+
+Attribute::Attribute(std::string name, attribute_type type)
+    : name{std::move(name)},
+      type{std::move(type)}
+{
+}
+
+Attribute::Attribute(std::string name, std::string const& type_string)
+    : name{std::move(name)}
+{
+    // NOTE: This somehow works
+    using from_specifier_type =
+        std::function<std::optional<attribute_type>(std::string const&)>;
+    std::vector<from_specifier_type> functions_to_try = {
+        INTEGER::from_specifier, VARCHAR::from_specifier};
+
+    for (auto const& f : functions_to_try)
+    {
+        auto maybe_value = f(type_string);
+        if (maybe_value.has_value())
+        {
+            type = {maybe_value.value()};
+            return;
+        }
+    }
+
+    throw std::runtime_error("Type specifier did not match any known type");
 }
 
 auto Attribute::read(std::istream& in) const -> json
