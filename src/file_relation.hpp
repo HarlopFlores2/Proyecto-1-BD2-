@@ -27,7 +27,6 @@ struct FileRelation : public Relation
         using pointer = nlohmann::json const*;
 
     private:
-        std::string const m_filename;
         mutable std::ifstream m_file;
         uint64_t m_file_offset;
         FileRelation const* m_fr;
@@ -35,7 +34,8 @@ struct FileRelation : public Relation
         bool m_end = false;
 
     public:
-        Iterator(std::string const& filename, uint64_t file_offset, FileRelation const* fr);
+        Iterator(FileRelation const* fr, uint64_t file_offset);
+
         Iterator(Iterator const& it);
 
         ~Iterator() = default;

@@ -20,10 +20,8 @@
 
 using json = nlohmann::json;
 
-FileRelation::Iterator::Iterator(
-    std::string const& filename, uint64_t file_offset, FileRelation const* fr)
-    : m_filename{filename},
-      m_file{filename, std::ios::binary | std::ios::in},
+FileRelation::Iterator::Iterator(FileRelation const* fr, uint64_t file_offset)
+    : m_file{fr->m_filename, std::ios::binary | std::ios::in},
       m_file_offset{file_offset},
       m_fr{fr},
       m_value_read{}
@@ -35,7 +33,7 @@ FileRelation::Iterator::Iterator(
 }
 
 FileRelation::Iterator::Iterator(Iterator const& it)
-    : Iterator{it.m_filename, it.m_file_offset, it.m_fr}
+    : Iterator{it.m_fr, it.m_file_offset}
 {
 }
 
