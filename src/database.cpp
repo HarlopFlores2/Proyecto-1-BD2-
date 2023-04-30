@@ -67,10 +67,10 @@ auto DataBase::create_relation(
     });
 
     m_db_info["relations"][name]["pk"] = primary_key;
-    json j_attributes = json::object();
+    json j_attributes = json::array();
     for (Attribute const& a : it->second.m_attributes)
     {
-        j_attributes[a.name] = a.to_specifier();
+        j_attributes.emplace_back(std::make_pair(a.name, a.to_specifier()));
     }
     m_db_info["relations"][name]["attributes"] = j_attributes;
     m_db_info["relations"][name]["indexes"] = json::object();
