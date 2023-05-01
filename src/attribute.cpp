@@ -53,9 +53,12 @@ auto INTEGER::from_specifier(std::string const& specifier) -> std::optional<INTE
 
 auto VARCHAR::read(std::istream& in) const -> json
 {
-    auto ret = new type[n_chars];
-    in.read(reinterpret_cast<char*>(ret), n_chars * sizeof(type));
-    return json{ret};
+    auto temp = new type[n_chars];
+    in.read(reinterpret_cast<char*>(temp), n_chars * sizeof(type));
+    json ret{temp};
+    delete[] temp;
+
+    return ret;
 }
 
 void VARCHAR::write(std::ostream& out, json const& j) const
