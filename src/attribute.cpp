@@ -17,7 +17,7 @@ auto INTEGER::read(std::istream& in) const -> json
 {
     type ret = 0;
     in.read(reinterpret_cast<char*>(&ret), sizeof(ret));
-    return json{ret};
+    return json(ret);
 }
 
 void INTEGER::write(std::ostream& out, json const& j) const
@@ -55,7 +55,7 @@ auto VARCHAR::read(std::istream& in) const -> json
 {
     auto temp = new type[n_chars];
     in.read(reinterpret_cast<char*>(temp), n_chars * sizeof(type));
-    json ret{temp};
+    json ret(temp);
     delete[] temp;
 
     return ret;
