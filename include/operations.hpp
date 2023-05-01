@@ -18,6 +18,50 @@
 template<
     typename R,
     typename Un = typename std::enable_if<std::is_base_of<Relation, R>::value>::type>
+auto project(R const& relation, std::vector<std::string> const& attributes_names)
+    -> MemoryRelation
+{
+    std::vector<Attribute> new_attributes{};
+    std::vector<uint64_t> new_attributes_indexes{};
+
+    auto const& attributes = relation.m_attributes;
+
+    for (std::string const& a_name : attributes_names)
+    {
+        auto it = std::find_if(attributes.begin(), attributes.end(), [&](Attribute const& a) {
+            return a.name == a_name;
+        });
+
+        if (it == attributes.end())
+        {
+            throw std::runtime_error(
+                "Attribute " + std::quoted(a_name)._M_string + " not found in relation.");
+        }
+
+        new_attributes.emplace_back(*it);
+        new_attributes_indexes.push_back(std::distance(attributes.begin(), it));
+    }
+
+    // XXX: In truth, the same indexes could still be used.
+    MemoryRelation ret{new_attributes, {}, {}};
+
+    for (auto it = relation.begin(); it != relation.end(); ++it)
+    {
+        nlohmann::json tuple;
+        for (auto i : new_attributes_indexes)
+        {
+            tuple.emplace_back((*it)[i]);
+        }
+
+        ret.insert(std::move(tuple));
+    }
+
+    return ret;
+}
+
+template<
+    typename R,
+    typename Un = typename std::enable_if<std::is_base_of<Relation, R>::value>::type>
 void relation_to_csv(R const& relation, std::ostream& out)
 {
     auto writer = csv::make_csv_writer(out);
