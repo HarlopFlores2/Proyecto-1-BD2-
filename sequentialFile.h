@@ -66,7 +66,6 @@ struct Record {
 template<typename typeRecord, typename typeKey>
 struct fixedRecord{
     typeRecord record;
-    int whatFile = 0; // 0 = data, 1 = aux
     int nextFile = 0;
     long nextPosition = -1;
     int  deleted = 0;
@@ -76,7 +75,6 @@ struct fixedRecord{
     typeKey getKey() {return record.getKey();}
     void print(){
         record.print();
-        cout << "whatFile: " << whatFile << endl;
         cout << "nextFile: " << nextFile << endl;
         cout << "nextPosition: " << nextPosition << endl;
         cout << "deleted: " << deleted << endl;
