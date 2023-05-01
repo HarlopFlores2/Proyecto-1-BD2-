@@ -9,6 +9,8 @@
 #include "attribute.hpp"
 #include "database.hpp"
 #include "json.hpp"
+#include "memory_relation.hpp"
+#include "operations.hpp"
 #include "relation.hpp"
 
 using json = nlohmann::json;
@@ -117,4 +119,18 @@ auto DataBase::create_relation(
 auto DataBase::generate_relation_filename(std::string const& relation_name) -> std::string
 {
     return relation_name + ".data";
+}
+
+auto DataBase::project(
+    std::string const& relation_name, std::vector<std::string> const& attributes_names)
+    -> MemoryRelation
+{
+    auto it = m_relations.find(relation_name);
+
+    if (it == m_relations.end())
+    {
+        throw std::runtime_error("Relation " + relation_name + " does not exist.");
+    }
+
+    return ::project(it->second, attributes_names);
 }
