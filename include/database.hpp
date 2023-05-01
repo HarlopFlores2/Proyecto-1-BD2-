@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "json.hpp"
+#include "memory_relation.hpp"
 #include "relation.hpp"
 
 struct DataBase
@@ -28,4 +29,8 @@ struct DataBase
         -> FileRelation&;
 
     static auto generate_relation_filename(std::string const& relation_name) -> std::string;
+
+    auto project(
+        std::string const& relation_name, std::vector<std::string> const& attributes_names)
+        -> MemoryRelation;
 };
