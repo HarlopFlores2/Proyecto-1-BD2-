@@ -75,6 +75,8 @@ auto FileRelation::Iterator::operator++() -> Iterator&
         return *this;
     }
 
+    m_value_read.reset();
+
     m_file_offset += m_fr->m_record_size;
     this->advance_until_next_valid();
 
@@ -95,6 +97,8 @@ auto FileRelation::Iterator::operator--() -> Iterator&
         m_file.seekg(0, std::ios::end);
         m_file_offset = m_file.tellg();
     }
+
+    m_value_read.reset();
 
     uint64_t original_offset = m_file_offset;
     while (m_file_offset - sizeof(FileRelation::record_deleted_and_last) >= m_fr->m_record_size)
