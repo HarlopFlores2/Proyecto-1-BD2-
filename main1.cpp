@@ -48,4 +48,7 @@ int main(){
     ExtendibleHash.printBucket("110");
     ExtendibleHash.printBucket("001");
     ExtendibleHash.printBucket("101");
+    ExtendibleHash.readHash(4);
+    cout << "*******\n";
+    ExtendibleHash.readHash(5);
 }

@@ -173,7 +173,7 @@ template<typename typeRecord>
 class extendibleHash{
     string hashFile = "../hashFile.dat";
     string indexFile = "../indexFile.dat";
-    string csvFile = "../prueba.csv";
+    string csvFile = "../pruebaHash.csv";
 public:
     extendibleHash(){};
     void load(){
@@ -217,20 +217,24 @@ public:
         // encadenar
         if(oldBucket.size == maxSizeBucket){
             if(hashKey.size() == globalDepth) {
+                //cout << "desborde" << endl;
                 Bucket<typeRecord> tempBucket;
                 Bucket<typeRecord> lastBucket;
 
                 int lastPos = oldBucket.nextPosition;
                 if (lastPos==-1){
-                    data.seekg(btoi(hashKey) * sizeBucket<typeRecord>());
-                    data >> lastBucket;
                     data.seekg(0,ios::end);
-                    lastBucket.nextPosition = data.tellg()/ sizeBucket<typeRecord>() +1;
+                    oldBucket.nextPosition = data.tellg()/ sizeBucket<typeRecord>();
+                    data.seekp(btoi(hashKey) * sizeBucket<typeRecord>());
+                    data << oldBucket;
+                    Bucket<typeRecord> lastBucket1;
+                    data.seekg(0,ios::end);
                     data.seekp(data.tellg());
-                    lastBucket.records[0] = record;
-                    lastBucket.size++;
-                    data >> lastBucket;
+                    lastBucket1.records[0] = record;
+                    lastBucket1.size++;
+                    data << lastBucket1;
                 }else {
+                    bool ok = false;
                     while(lastPos != -1){
                         data.seekg(lastPos * sizeBucket<typeRecord>());
                         data >> tempBucket;
@@ -238,16 +242,19 @@ public:
                             tempBucket.records[tempBucket.size++] = record;
                             data.seekp(lastPos * sizeBucket<typeRecord>());
                             data << tempBucket;
+                            ok = true;
                             break;
                         }
                         lastPos = tempBucket.nextPosition;
                     }
-                    data.seekg(0,ios::end);
-                    tempBucket.nextPosition = data.tellg()/ sizeBucket<typeRecord>();
-                    data.seekp(data.tellg());
-                    lastBucket.records[0] = record;
-                    lastBucket.size++;
-                    data >> lastBucket;
+                    if(!ok){
+                        data.seekg(0,ios::end);
+                        tempBucket.nextPosition = data.tellg()/ sizeBucket<typeRecord>();
+                        data.seekp(data.tellg());
+                        lastBucket.records[0] = record;
+                        lastBucket.size++;
+                        data << lastBucket;
+                    }
                 }
 
             }else{
@@ -297,6 +304,16 @@ public:
         indexDepth temp;
         index >> temp;
         temp.print();
+    }
+
+    void readHash(int pos){
+        fstream data(hashFile,ios::out | ios::in | ios::binary);
+        data.seekg(pos * sizeBucket<typeRecord>());
+        Bucket<typeRecord> temp;
+        data >> temp;
+        for(int i=0;i<temp.size;i++){
+            temp.records[i].print();
+        }
     }
 
     void printBucket(string s){
