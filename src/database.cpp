@@ -47,9 +47,6 @@ DataBase::DataBase(std::string name)
 
 DataBase::~DataBase()
 {
-    std::filesystem::create_directories(m_path);
-    std::ofstream of{m_path / db_file, std::fstream::out | std::fstream::binary};
-    of << m_db_info;
 }
 
 auto DataBase::create_relation(
@@ -74,6 +71,9 @@ auto DataBase::create_relation(
     }
     m_db_info["relations"][name]["attributes"] = j_attributes;
     m_db_info["relations"][name]["indexes"] = json::object();
+
+    std::ofstream of{m_path / db_file, std::fstream::out | std::fstream::binary};
+    of << m_db_info;
 
     // TODO: Create index for primary key
 
