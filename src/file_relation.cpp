@@ -150,9 +150,17 @@ auto operator!=(FileRelation::Iterator const& a, FileRelation::Iterator const& b
 void FileRelation::Iterator::advance_until_next_valid()
 {
     uint64_t deleted_p = 0;
-    while (m_file.peek(), !m_file.eof())
+
+    while (true)
     {
         m_file.seekg(m_file_offset, std::ios::beg);
+
+        m_file.peek();
+        if (m_file.eof())
+        {
+            break;
+        }
+
         m_file.read(reinterpret_cast<char*>(&deleted_p), sizeof(deleted_p));
 
         if (deleted_p == FileRelation::record_not_deleted)
