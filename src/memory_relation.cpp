@@ -80,6 +80,16 @@ MemoryRelation::MemoryRelation(
 {
 }
 
+auto MemoryRelation::begin() const -> Iterator
+{
+    return {this, 0};
+}
+
+auto MemoryRelation::end() const -> Iterator
+{
+    return {this, m_tuples.size()};
+}
+
 void MemoryRelation::insert(nlohmann::json tuple)
 {
     // TODO: Check if primary key exists

@@ -48,5 +48,8 @@ struct MemoryRelation : public Relation
         std::map<int, int> indexes,
         std::vector<nlohmann::json> tuples);
 
+    auto begin() const -> Iterator;
+    auto end() const -> Iterator;
+
     void insert(nlohmann::json tuple);
 };
