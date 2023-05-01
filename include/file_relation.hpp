@@ -21,6 +21,8 @@ struct FileRelation : public Relation
     struct Iterator
     {
     public:
+        friend FileRelation;
+
         using iterator_category = std::bidirectional_iterator_tag;
         using difference_type = std::ptrdiff_t;
         using reference = nlohmann::json const&;
@@ -69,6 +71,9 @@ struct FileRelation : public Relation
         std::map<int, int> indexes,
         std::string name,
         std::filesystem::path filename);
+
+    auto begin() const -> Iterator;
+    auto end() const -> Iterator;
 
     auto to_memory() -> MemoryRelation;
 

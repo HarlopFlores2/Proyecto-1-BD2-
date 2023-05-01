@@ -188,6 +188,19 @@ FileRelation::FileRelation(
         reinterpret_cast<char const*>(&record_deleted_and_last), sizeof(record_not_deleted));
 }
 
+auto FileRelation::begin() const -> Iterator
+{
+    return {this, sizeof(record_deleted_and_last)};
+}
+
+auto FileRelation::end() const -> Iterator
+{
+    Iterator ret = this->begin();
+    ret.m_end = true;
+
+    return ret;
+}
+
 auto FileRelation::to_memory() -> MemoryRelation
 {
     std::ifstream file{m_filename, std::ios::in};
