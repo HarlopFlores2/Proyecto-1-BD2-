@@ -19,21 +19,55 @@ DataBase::DataBase(std::string name)
     : m_name{std::move(name)},
       m_path(m_name)
 {
+    std::filesystem::path info_file = m_path / db_file;
+
     if (std::filesystem::exists(m_path))
     {
-        if (std::filesystem::is_directory(m_path))
-        {
-            // TODO: Read data back
-            throw std::runtime_error("Not implemented");
-        }
-        else
+        if (!std::filesystem::is_directory(m_path))
         {
             throw std::runtime_error(m_path.string() + " already exists but is a file.");
         }
+
+        std::ifstream in{info_file, std::ios::in | std::ios::binary};
+
+        if (in.bad())
+        {
+            throw std::runtime_error(
+                "Info file " + info_file.string() + " could not be opened for reading");
+        }
+
+        json json_info = json::parse(in);
+
+        // TODO: Not just crash and burn
+
+        for (auto const& [name, j_def] :
+             json_info["relations"].get<std::map<std::string, json>>())
+        {
+            if (m_relations.count(name) != 0)
+            {
+                throw std::runtime_error("Relation " + name + " repeated in information file.");
+            }
+
+            std::string primary_key = j_def["pk"].get<std::string>();
+
+            std::vector<Attribute> attributes;
+            for (auto const& [a_name, a_type] :
+                 j_def["attributes"].get<std::vector<std::tuple<std::string, std::string>>>())
+            {
+                attributes.emplace_back(a_name, a_type);
+            }
+
+            this->create_relation(name, attributes, primary_key);
+        }
+
+        // TODO: Handle indexes
+        // TODO: Handle primary key
+
+        return;
     }
 
     std::filesystem::create_directories(m_path);
-    std::ofstream of{m_path / db_file, std::fstream::out | std::fstream::binary};
+    std::ofstream of{info_file, std::fstream::out | std::fstream::binary};
     if (of.bad())
     {
         throw std::runtime_error("File couldn't be created.");
