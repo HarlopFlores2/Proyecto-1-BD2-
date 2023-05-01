@@ -98,6 +98,7 @@ istream &operator>>(istream &stream, fixedRecord<typeRecord,typeKey> &p) {
     return stream;
 }
 
+
 template<typename typeRecord, typename typeKey>
 class sequentialFile {
     const char *dataFile = "../dataFile.dat";
@@ -107,7 +108,7 @@ public:
     explicit sequentialFile(int maxAuxSize) : maxAuxSize(maxAuxSize) {};
 
     void load_data(const string & csvFile) {
-        fixedRecord<typeRecord,typeKey> temp,header;
+        fixedRecord<typeRecord, typeKey> temp, header;
         fstream data(dataFile, ios::out | ios::binary);
         fstream aux(auxFile, ios::out | ios::binary);
         if (!data || !aux) return;
@@ -122,14 +123,39 @@ public:
             vector<string> row = document.GetRow<string>(i);
             temp.load(row);
             offset++;
-            temp.nextPosition = (i == len-1) ? -1 : offset;
-            temp.nextFile = (i == len-1) ? -1 : 0;
-            data.seekp((i+1) * sizeRecord());
+            temp.nextPosition = (i == len - 1) ? -1 : offset;
+            temp.nextFile = (i == len - 1) ? -1 : 0;
+            data.seekp((i + 1) * sizeRecord());
             data << temp;
         }
         data.close();
         aux.close();
+    }
 
+    int countD(const char* d, const char* a){
+        fstream data(d, ios::in | ios::binary);
+        fstream aux(a, ios::in | ios::binary);
+        int countDeleted = 0;
+        fixedRecord<typeRecord,typeKey> recIt;
+        data.seekg(0,ios::end);
+        int pos = 0, cant = data.tellg() / sizeRecord();
+        while(pos<=cant){
+            data.seekg(pos * sizeRecord());
+            data >> recIt;
+            if (recIt.deleted) countDeleted++;
+            pos++;
+        }
+        aux.seekg(0,ios::end);
+        pos = 0, cant = aux.tellg() / sizeRecord();
+        while(pos<=cant){
+            aux.seekg(pos*sizeRecord());
+            aux >> recIt;
+            if (recIt.deleted) countDeleted++;
+            pos++;
+        }
+        data.close();
+        aux.close();
+        return countDeleted;
     }
 
 
@@ -173,7 +199,8 @@ public:
                 results.push_back(temp);
             }
         }
-
+        data.close();
+        aux.close();
         return results;
     }
 
@@ -220,7 +247,8 @@ public:
                 }
             }
         }
-
+        data.close();
+        aux.close();
         return results;
     }
 
@@ -284,6 +312,8 @@ public:
                 aux << record;
             }
         }
+        data.close();
+        aux.close();
     }
 
     bool removeRecord(int key) {
@@ -354,13 +384,20 @@ public:
         if (!data || !aux) return;
         fixedRecord<typeRecord, typeKey> header, temp;
         data.seekg(0, ios::end);
+
         int newSize = maxAuxSize + (data.tellg()/sizeRecord());
+        int countDeleted = countD(dataFile,auxFile);
+        cout << countDeleted << '\n';
+        newSize -= countDeleted;
         data.seekg(0);
         data >> header;
-        temp = header;
-        data2.seekg(0);
+        cout << header.nextPosition << " " << header.nextFile  <<endl;
+        temp.nextPosition = header.nextPosition;
+        temp.nextFile = header.nextFile;
+        data2.seekp(0);
         data2 << header;
         int pos = 1;
+        cout << temp.nextPosition << " " << temp.nextFile<<endl;
         while(temp.nextPosition!=-1 and temp.nextFile!=-1){
             fixedRecord<typeRecord, typeKey> curr;
             if (temp.nextFile == 0) {
@@ -384,6 +421,7 @@ public:
             temp.nextPosition = curr.nextPosition;
             pos++;
         }
+        cout<<pos<<endl;
     }
 
     void readRecordData(int pos) {
