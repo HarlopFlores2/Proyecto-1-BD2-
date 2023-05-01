@@ -131,9 +131,9 @@ auto operator==(FileRelation::Iterator const& a, FileRelation::Iterator const& b
     {
         return false;
     }
-    if (a.m_end == true)
+    if (a.m_end == true || b.m_end == true)
     {
-        return b.m_end == true;
+        return a.m_end == b.m_end;
     }
     return a.m_file_offset == b.m_file_offset;
 }
