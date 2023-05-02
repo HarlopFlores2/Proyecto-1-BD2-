@@ -14,6 +14,8 @@ struct INTEGER
 {
     using type = int64_t;
 
+    auto operator==(INTEGER const& other) const -> bool;
+
     auto read(std::istream& in) const -> nlohmann::json;
     void write(std::ostream& out, nlohmann::json const& j) const;
 
@@ -31,6 +33,8 @@ struct VARCHAR
 {
     using type = char;
     uint64_t n_chars;
+
+    auto operator==(VARCHAR const& other) const -> bool;
 
     auto read(std::istream& in) const -> nlohmann::json;
     void write(std::ostream& out, nlohmann::json const& j) const;
@@ -54,6 +58,8 @@ struct Attribute
 
     Attribute(std::string name, attribute_type type);
     Attribute(std::string name, std::string const& type_string);
+
+    auto operator==(Attribute const& other) const -> bool;
 
     auto read(std::istream& in) const -> nlohmann::json;
     void write(std::ostream& out, nlohmann::json const& j) const;

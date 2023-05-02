@@ -13,6 +13,11 @@
 
 using json = nlohmann::json;
 
+auto INTEGER::operator==(INTEGER const& other) const -> bool
+{
+    return true;
+}
+
 auto INTEGER::read(std::istream& in) const -> json
 {
     type ret = 0;
@@ -49,6 +54,11 @@ auto INTEGER::from_specifier(std::string const& specifier) -> std::optional<INTE
     }
 
     return {};
+}
+
+auto VARCHAR::operator==(VARCHAR const& other) const -> bool
+{
+    return n_chars == other.n_chars;
 }
 
 auto VARCHAR::read(std::istream& in) const -> json
@@ -102,6 +112,11 @@ auto VARCHAR::from_specifier(std::string const& specifier) -> std::optional<VARC
     uint64_t n_digits = std::stoull(m[1]);
 
     return {VARCHAR{n_digits}};
+}
+
+auto Attribute::operator==(Attribute const& other) const -> bool
+{
+    return name == other.name && type == other.type;
 }
 
 Attribute::Attribute(std::string name, attribute_type type)
