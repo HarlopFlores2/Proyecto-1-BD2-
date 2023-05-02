@@ -30,9 +30,13 @@ struct k_and : pegtl::istring<'a', 'n', 'd'> {};
 struct k_between : pegtl::istring<'b', 'e', 't', 'w', 'e', 'e', 'n'> {};
 struct k_create : pegtl::istring<'c', 'r', 'e', 'a', 't', 'e'> {};
 struct k_from : pegtl::istring<'f', 'r', 'o', 'm'> {};
+struct k_integer : pegtl::istring<'i', 'n', 't', 'e', 'g', 'e', 'r'> {};
+struct k_key : pegtl::istring<'k', 'e', 'y'> {};
+struct k_primary : pegtl::istring<'p', 'r', 'i', 'm', 'a', 'r', 'y'> {};
 struct k_select : pegtl::istring<'s', 'e', 'l', 'e', 'c', 't'> {};
 struct k_table : pegtl::istring<'t', 'a', 'b', 'l', 'e'> {};
 struct k_where : pegtl::istring<'w', 'h', 'e', 'r', 'e'> {};
+struct k_varchar : pegtl::istring<'v', 'a', 'r', 'c', 'h', 'a', 'r'> {};
 struct k_semicolon : pegtl::one<';'> {};
 
 struct identifier : pegtl::seq<pegtl::alpha, pegtl::star<pegtl::alnum>> {};
@@ -57,11 +61,11 @@ struct lit_string_quotes : pegtl::seq<
 > {};
 struct literal : pegtl::sor<lit_number, lit_string_quotes> {};
 
+struct identifier_or_literal : pegtl::sor<identifier, literal> {};
+
 struct select_column : pegtl::sor<pegtl::one<'*'>, identifier> {};
 struct select_columns : pegtl::list<select_column, pegtl::one<','>, pegtl::space> {};
 struct select_relation : identifier {};
-
-struct identifier_or_literal : pegtl::sor<identifier, literal> {};
 
 struct predicate_less :
     pegtl::seq<identifier_or_literal,
@@ -135,7 +139,57 @@ struct s_select : pegtl::seq<
 >
 {};
 
-struct grammar : pegtl::must<s_select> {};
+struct type_integer : k_integer {};
+struct type_size_specifier : pegtl::seq<
+    pegtl::one<'('>,
+    spaces_s,
+    lit_number,
+    spaces_s,
+    pegtl::one<')'>
+> {};
+
+struct type_varchar : pegtl::seq<
+    k_varchar,
+    spaces_s,
+    type_size_specifier
+> {};
+
+struct type : pegtl::sor<
+    type_integer, type_varchar
+> {};
+
+struct primary_key : pegtl::seq<k_primary, spaces_p, k_key> {};
+
+struct column_def : pegtl::seq<
+    identifier,
+    spaces_p,
+    type,
+    pegtl::opt<pegtl::seq<spaces_p, primary_key>>
+> {};
+
+struct column_defs : pegtl::list<column_def, pegtl::one<','>, pegtl::space>
+{};
+
+struct table_name : identifier {};
+
+struct s_create_table : pegtl::seq<
+    k_create,
+    spaces_p,
+    k_table,
+    spaces_p,
+    table_name,
+    spaces_p,
+    pegtl::one<'('>,
+    spaces_s,
+    column_defs,
+    spaces_s,
+    pegtl::one<')'>,
+    spaces_s,
+    k_semicolon
+>
+{};
+
+struct grammar : pegtl::must<pegtl::sor<s_select, s_create_table>> {};
 
 // clang-format on
 
@@ -148,16 +202,27 @@ using selector = pegtl::parse_tree::selector<
         lit_number,
         lit_string,
 
+        type_integer,
+        type_varchar,
+
+        primary_key,
+
         select_columns,
         select_column,
         select_relation,
         s_select,
         select_where,
+
         predicate_less,
         predicate_greater,
         predicate_equal,
         predicate_unequal,
-        predicate_between>,
+        predicate_between,
+
+        s_create_table,
+        table_name,
+        column_def,
+        column_defs>,
     pegtl::parse_tree::fold_one::on<identifier_or_literal>>;
 
 struct SelectExpression
