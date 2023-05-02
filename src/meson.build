@@ -10,7 +10,7 @@ bd2_p2_library = library('bd2_p2',
 
 parser_library = library('parser',
                      'parser.cpp',
-                     link_with : [],
+                     link_with : [bd2_p2_library],
                      include_directories : inc)
 
 main_exe = executable('main', 'main.cpp',
