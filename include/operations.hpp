@@ -13,6 +13,7 @@
 #include "csv.hpp"
 #include "json.hpp"
 #include "memory_relation.hpp"
+#include "predicates.hpp"
 #include "relation.hpp"
 
 template<
@@ -54,6 +55,43 @@ auto project(R const& relation, std::vector<std::string> const& attributes_names
         }
 
         ret.insert(std::move(tuple));
+    }
+
+    return ret;
+}
+
+template<
+    typename R,
+    typename Un = typename std::enable_if<std::is_base_of<Relation, R>::value>::type>
+auto select(R const& relation, std::vector<predicate_type> const& predicates) -> MemoryRelation
+{
+    std::vector<tuple_validator_type> validators;
+
+    for (predicate_type const& p : predicates)
+    {
+        auto v = std::visit(
+            [&](auto&& p) { return p.generate_validator(relation.m_attributes); }, p);
+        validators.emplace_back(std::move(v));
+    }
+
+    MemoryRelation ret{relation.m_attributes, {}, {}};
+
+    for (nlohmann::json const& tuple : relation)
+    {
+        bool valid_tuple = true;
+        for (tuple_validator_type const& tv : validators)
+        {
+            if (!tv(tuple))
+            {
+                valid_tuple = false;
+                break;
+            }
+        }
+
+        if (valid_tuple)
+        {
+            ret.insert(tuple);
+        }
     }
 
     return ret;
