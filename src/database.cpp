@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <string>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "attribute.hpp"
@@ -11,7 +12,9 @@
 #include "json.hpp"
 #include "memory_relation.hpp"
 #include "operations.hpp"
+#include "parser.hpp"
 #include "relation.hpp"
+#include "util.hpp"
 
 using json = nlohmann::json;
 
@@ -122,7 +125,7 @@ auto DataBase::generate_relation_filename(std::string const& relation_name) -> s
 }
 
 auto DataBase::project(
-    std::string const& relation_name, std::vector<std::string> const& attributes_names)
+    std::string const& relation_name, std::vector<std::string> const& attributes_names) const
     -> MemoryRelation
 {
     auto it = m_relations.find(relation_name);
@@ -136,7 +139,7 @@ auto DataBase::project(
 }
 
 auto DataBase::select(
-    std::string const& relation_name, std::vector<predicate_type> const& predicates)
+    std::string const& relation_name, std::vector<predicate_type> const& predicates) const
     -> MemoryRelation
 {
     auto it = m_relations.find(relation_name);
@@ -147,4 +150,41 @@ auto DataBase::select(
     }
 
     return ::select(it->second, predicates);
+}
+
+auto DataBase::evaluate(ParsedExpression const& pe) const -> std::optional<MemoryRelation>
+{
+    auto ret = std::visit(
+        overloaded{
+            [&](SelectExpression const& se) -> std::optional<MemoryRelation> {
+                MemoryRelation relation_filtered = this->select(se.relation, se.predicates);
+                if (se.attributes.size() == 1 && se.attributes.front() == "*")
+                {
+                    return {relation_filtered};
+                }
+
+                std::vector<std::string> attributes_to_project;
+                for (std::string const& a : se.attributes)
+                {
+                    if (a == "*")
+                    {
+                        for (Attribute const& a : relation_filtered.m_attributes)
+                        {
+                            attributes_to_project.push_back(a.name);
+                        }
+                    }
+                    else
+                    {
+                        attributes_to_project.push_back(a);
+                    }
+                }
+
+                return {::project(relation_filtered, attributes_to_project)};
+            },
+            [](CreateTableExpression const& cte) -> std::optional<MemoryRelation> {
+                throw std::runtime_error("Not implemented");
+            }},
+        pe);
+
+    return ret;
 }
