@@ -40,6 +40,5 @@ struct DataBase
         std::string const& relation_name, std::vector<predicate_type> const& predicates) const
         -> MemoryRelation;
 
-    [[nodiscard]] auto evaluate(ParsedExpression const& pe) const
-        -> std::optional<MemoryRelation>;
+    [[nodiscard]] auto evaluate(ParsedExpression const& pe) -> std::optional<MemoryRelation>;
 };
