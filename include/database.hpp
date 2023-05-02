@@ -8,6 +8,7 @@
 
 #include "json.hpp"
 #include "memory_relation.hpp"
+#include "predicates.hpp"
 #include "relation.hpp"
 
 struct DataBase
@@ -30,7 +31,9 @@ struct DataBase
 
     static auto generate_relation_filename(std::string const& relation_name) -> std::string;
 
-    auto project(
-        std::string const& relation_name, std::vector<std::string> const& attributes_names)
+    auto
+    project(std::string const& relation_name, std::vector<std::string> const& attributes_names)
+        -> MemoryRelation;
+    auto select(std::string const& relation_name, std::vector<predicate_type> const& predicates)
         -> MemoryRelation;
 };
