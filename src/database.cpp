@@ -157,7 +157,7 @@ auto DataBase::select(
     return ::select(it->second, predicates);
 }
 
-auto DataBase::evaluate(ParsedExpression const& pe) const -> std::optional<MemoryRelation>
+auto DataBase::evaluate(ParsedExpression const& pe) -> std::optional<MemoryRelation>
 {
     auto ret = std::visit(
         overloaded{
@@ -186,8 +186,9 @@ auto DataBase::evaluate(ParsedExpression const& pe) const -> std::optional<Memor
 
                 return {::project(relation_filtered, attributes_to_project)};
             },
-            [](CreateTableExpression const& cte) -> std::optional<MemoryRelation> {
-                throw std::runtime_error("Not implemented");
+            [&](CreateTableExpression const& cte) -> std::optional<MemoryRelation> {
+                this->create_relation(cte.name, cte.attributes, cte.primary_key);
+                return {};
             }},
         pe);
 
