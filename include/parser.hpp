@@ -10,6 +10,7 @@
 #include <variant>
 #include <vector>
 
+#include "attribute.hpp"
 #include "json.hpp"
 #include "predicates.hpp"
 
@@ -235,8 +236,8 @@ struct SelectExpression
 struct CreateTableExpression
 {
     std::string name;
-    std::vector<std::string> attributes;
-    std::vector<std::string> primary_key;
+    std::vector<Attribute> attributes;
+    std::optional<std::string> primary_key;
 };
 
 using ParsedExpression = std::variant<SelectExpression, CreateTableExpression>;
