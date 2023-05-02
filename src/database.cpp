@@ -89,8 +89,9 @@ DataBase::~DataBase()
 }
 
 auto DataBase::create_relation(
-    std::string const& name, std::vector<Attribute> attributes, std::string primary_key)
-    -> FileRelation&
+    std::string const& name,
+    std::vector<Attribute> attributes,
+    std::optional<std::string> const& primary_key) -> FileRelation&
 {
     if (m_relations.count(name) != 0)
     {
@@ -102,7 +103,11 @@ auto DataBase::create_relation(
         name, FileRelation{std::move(attributes), {}, name, filename}
     });
 
-    m_db_info["relations"][name]["pk"] = primary_key;
+    if (primary_key.has_value())
+    {
+        m_db_info["relations"][name]["pk"] = primary_key.value();
+    }
+
     json j_attributes = json::array();
     for (Attribute const& a : it->second.m_attributes)
     {

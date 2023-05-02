@@ -27,8 +27,9 @@ struct DataBase
     ~DataBase();
 
     auto create_relation(
-        std::string const& name, std::vector<Attribute> attributes, std::string primary_key)
-        -> FileRelation&;
+        std::string const& name,
+        std::vector<Attribute> attributes,
+        std::optional<std::string> const& primary_key) -> FileRelation&;
 
     static auto generate_relation_filename(std::string const& relation_name) -> std::string;
 
