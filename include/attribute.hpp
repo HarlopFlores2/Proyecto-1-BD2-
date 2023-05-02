@@ -25,6 +25,8 @@ struct INTEGER
 
     [[nodiscard]] auto size() const -> uint64_t;
 
+    friend auto operator<<(std::ostream& out, INTEGER const& i) -> std::ostream&;
+
 public:
     static auto from_specifier(std::string const& specifier) -> std::optional<INTEGER>;
 };
@@ -44,6 +46,8 @@ struct VARCHAR
     [[nodiscard]] auto valid_json(nlohmann::json const& j) const -> bool;
 
     [[nodiscard]] auto size() const -> uint64_t;
+
+    friend auto operator<<(std::ostream& out, VARCHAR const& vc) -> std::ostream&;
 
 public:
     static auto from_specifier(std::string const& specifier) -> std::optional<VARCHAR>;
@@ -69,4 +73,6 @@ struct Attribute
     [[nodiscard]] auto valid_json(nlohmann::json const& j) const -> bool;
 
     [[nodiscard]] auto size() const -> uint64_t;
+
+    friend auto operator<<(std::ostream& out, Attribute const& vc) -> std::ostream&;
 };

@@ -56,6 +56,12 @@ auto INTEGER::from_specifier(std::string const& specifier) -> std::optional<INTE
     return {};
 }
 
+auto operator<<(std::ostream& out, INTEGER const& i) -> std::ostream&
+{
+    out << i.to_specifier();
+    return out;
+}
+
 auto VARCHAR::operator==(VARCHAR const& other) const -> bool
 {
     return n_chars == other.n_chars;
@@ -114,6 +120,12 @@ auto VARCHAR::from_specifier(std::string const& specifier) -> std::optional<VARC
     return {VARCHAR{n_digits}};
 }
 
+auto operator<<(std::ostream& out, VARCHAR const& vc) -> std::ostream&
+{
+    out << vc.to_specifier();
+    return out;
+}
+
 auto Attribute::operator==(Attribute const& other) const -> bool
 {
     return name == other.name && type == other.type;
@@ -170,4 +182,13 @@ auto Attribute::valid_json(json const& j) const -> bool
 auto Attribute::size() const -> uint64_t
 {
     return std::visit([&](auto& a) { return a.size(); }, type);
+}
+
+auto operator<<(std::ostream& out, Attribute const& vc) -> std::ostream&
+{
+    out << vc.name;
+    out << "{";
+    std::visit([&out](auto&& a) { out << a; }, vc.type);
+    out << "}";
+    return out;
 }
