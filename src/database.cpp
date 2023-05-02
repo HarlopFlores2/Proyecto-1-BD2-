@@ -134,3 +134,17 @@ auto DataBase::project(
 
     return ::project(it->second, attributes_names);
 }
+
+auto DataBase::select(
+    std::string const& relation_name, std::vector<predicate_type> const& predicates)
+    -> MemoryRelation
+{
+    auto it = m_relations.find(relation_name);
+
+    if (it == m_relations.end())
+    {
+        throw std::runtime_error("Relation " + relation_name + " does not exist.");
+    }
+
+    return ::select(it->second, predicates);
+}
