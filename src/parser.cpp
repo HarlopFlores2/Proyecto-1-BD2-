@@ -201,7 +201,3 @@ auto process_tree(p_node const& node) -> ParsedExpression
         throw std::runtime_error("Not implemented.");
     }
 }
-
-int main()
-{
-}
