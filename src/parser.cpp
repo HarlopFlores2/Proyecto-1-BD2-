@@ -20,6 +20,7 @@
 
 #include "prettyprint.hpp"
 #include "tao/pegtl/string_input.hpp"
+#include "util.hpp"
 
 using json = nlohmann::json;
 
@@ -236,37 +237,57 @@ auto process_create_table(p_node const& ct_node) -> CreateTableExpression
     return ret;
 }
 
-auto process_insert(p_node const& insert_node) -> InsertExpression
+auto process_insert(p_node const& insert_node)
+    -> std::variant<InsertValuesExpression, InsertCSVExpression>
 {
     p_node const& t_name = *insert_node.children[0];
     assert(t_name.is_type<table_name>());
 
-    p_node const& values = *insert_node.children[1];
-    assert(values.is_type<insert_values>());
+    p_node const& insert_source = *insert_node.children[1];
 
-    InsertExpression ret;
-    ret.relation = t_name.string();
-
-    assert(values.children.size() > 0);
-    for (auto const& it : values.children)
+    if (insert_source.is_type<insert_source_values>())
     {
-        auto const& lit_value = *it->children.front();
+        p_node const& values = *insert_source.children[0];
 
-        if (lit_value.is_type<lit_number>())
+        InsertValuesExpression ret;
+        ret.relation = t_name.string();
+
+        assert(values.children.size() > 0);
+        for (auto const& it : values.children)
         {
-            ret.tuple.emplace_back(std::stoll(lit_value.string()));
+            auto const& lit_value = *it->children.front();
+
+            if (lit_value.is_type<lit_number>())
+            {
+                std::cerr << lit_value.string() << "\n";
+                ret.tuple.emplace_back(std::stoll(lit_value.string()));
+            }
+            else if (lit_value.is_type<lit_string>())
+            {
+                ret.tuple.emplace_back(lit_value.string());
+            }
+            else
+            {
+                throw std::runtime_error("Not implemented");
+            }
         }
-        else if (lit_value.is_type<lit_string>())
-        {
-            ret.tuple.emplace_back(lit_value.string());
-        }
-        else
-        {
-            throw std::runtime_error("Not implemented");
-        }
+
+        return ret;
     }
+    else if (insert_source.is_type<insert_source_csv>())
+    {
+        InsertCSVExpression ret;
+        ret.relation = t_name.string();
 
-    return ret;
+        auto const& filename_it = *insert_source.children[0];
+        ret.filename = filename_it.string();
+
+        return ret;
+    }
+    else
+    {
+        throw std::runtime_error("Not implemented");
+    }
 }
 
 auto process_tree(p_node const& node) -> ParsedExpression
@@ -289,7 +310,13 @@ auto process_tree(p_node const& node) -> ParsedExpression
     }
     else if (exp.is_type<s_insert>())
     {
-        return {process_insert(exp)};
+        auto iv = process_insert(exp);
+
+        return std::visit(
+            overloaded{
+                [](InsertValuesExpression const& i_v) -> ParsedExpression { return i_v; },
+                [](InsertCSVExpression const& i_csv) -> ParsedExpression { return i_csv; }},
+            iv);
     }
     else
     {
