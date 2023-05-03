@@ -31,7 +31,7 @@ auto literal_node_to_value(p_node const& node) -> json
 {
     if (node.is_type<lit_number>())
     {
-        return json(std::stoull(node.string()));
+        return json(std::stoll(node.string()));
     }
     else if (node.is_type<lit_string>())
     {
