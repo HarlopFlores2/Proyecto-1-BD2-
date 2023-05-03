@@ -63,6 +63,49 @@ auto project(R const& relation, std::vector<std::string> const& attributes_names
 template<
     typename R,
     typename Un = typename std::enable_if<std::is_base_of<Relation, R>::value>::type>
+auto select_indexes(R const& relation, std::vector<predicate_type> const& predicates)
+    -> std::vector<uint64_t>
+{
+    // XXX: Implementing generators could allow `select` to use `select_indexes` without needing
+    // the intermediate indexes vector; alas, it's too hard.
+
+    std::vector<tuple_validator_type> validators;
+
+    for (predicate_type const& p : predicates)
+    {
+        auto v = std::visit(
+            [&](auto&& p) { return p.generate_validator(relation.m_attributes); }, p);
+        validators.emplace_back(std::move(v));
+    }
+
+    std::vector<uint64_t> ret;
+
+    for (auto it = relation.begin(); it != relation.end(); ++it)
+    {
+        nlohmann::json const& tuple = *it;
+
+        bool valid_tuple = true;
+        for (tuple_validator_type const& tv : validators)
+        {
+            if (!tv(tuple))
+            {
+                valid_tuple = false;
+                break;
+            }
+        }
+
+        if (valid_tuple)
+        {
+            ret.push_back(it.calculate_index());
+        }
+    }
+
+    return ret;
+}
+
+template<
+    typename R,
+    typename Un = typename std::enable_if<std::is_base_of<Relation, R>::value>::type>
 auto select(R const& relation, std::vector<predicate_type> const& predicates) -> MemoryRelation
 {
     std::vector<tuple_validator_type> validators;
