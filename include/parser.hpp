@@ -42,9 +42,11 @@ struct k_semicolon : pegtl::one<';'> {};
 
 struct identifier : pegtl::seq<pegtl::alpha, pegtl::star<pegtl::alnum>> {};
 
+struct lit_unumber :
+    pegtl::plus<pegtl::digit> {};
 struct lit_number :
     pegtl::seq<pegtl::opt<pegtl::one<'+', '-'>>,
-               pegtl::plus<pegtl::digit>>
+               lit_unumber>
 {};
 struct escaped_double_quotes : pegtl::string<'\\', '"'> {};
 struct escaped_backslash : pegtl::string<'\\', '\\'> {};
@@ -144,7 +146,7 @@ struct type_integer : k_integer {};
 struct type_size_specifier : pegtl::seq<
     pegtl::one<'('>,
     spaces_s,
-    lit_number,
+    lit_unumber,
     spaces_s,
     pegtl::one<')'>
 > {};
@@ -199,8 +201,8 @@ using selector = pegtl::parse_tree::selector<
     Rule,
     pegtl::parse_tree::store_content::on<
         identifier,
-        literal,
         lit_number,
+        lit_unumber,
         lit_string,
 
         type_integer,
