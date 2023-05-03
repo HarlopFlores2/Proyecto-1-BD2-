@@ -30,6 +30,7 @@ struct spaces_s : pegtl::star<pegtl::space> {};
 struct k_and : pegtl::istring<'a', 'n', 'd'> {};
 struct k_between : pegtl::istring<'b', 'e', 't', 'w', 'e', 'e', 'n'> {};
 struct k_create : pegtl::istring<'c', 'r', 'e', 'a', 't', 'e'> {};
+struct k_csv : pegtl::istring<'c', 's', 'v'> {};
 struct k_from : pegtl::istring<'f', 'r', 'o', 'm'> {};
 struct k_insert : pegtl::istring<'i', 'n', 's', 'e', 'r', 't'> {};
 struct k_integer : pegtl::istring<'i', 'n', 't', 'e', 'g', 'e', 'r'> {};
@@ -195,10 +196,33 @@ struct s_create_table : pegtl::seq<
 >
 {};
 
-struct insert_values : pegtl::list<
+struct insert_source_csv : pegtl::seq<
+    k_from,
+    spaces_p,
+    k_csv,
+    spaces_p,
+    lit_string_quotes
+> {};
+
+struct insert_source_values_values : pegtl::list<
     literal,
     pegtl::one<','>,
     pegtl::space
+> {};
+
+struct insert_source_values : pegtl::seq<
+    k_values,
+    spaces_p,
+    pegtl::one<'('>,
+    spaces_s,
+    insert_source_values_values,
+    spaces_s,
+    pegtl::one<')'>
+> {};
+
+struct insert_source : pegtl::sor<
+    insert_source_values,
+    insert_source_csv
 > {};
 
 struct s_insert : pegtl::seq<
@@ -208,13 +232,8 @@ struct s_insert : pegtl::seq<
     spaces_p,
     table_name,
     spaces_p,
-    k_values,
-    spaces_p,
-    pegtl::one<'('>,
+    insert_source,
     spaces_s,
-    insert_values,
-    spaces_s,
-    pegtl::one<')'>,
     k_semicolon
 > {};
 
@@ -255,7 +274,9 @@ using selector = pegtl::parse_tree::selector<
         column_defs,
 
         s_insert,
-        insert_values>,
+        insert_source_csv,
+        insert_source_values,
+        insert_source_values_values>,
     pegtl::parse_tree::fold_one::on<identifier_or_literal>>;
 
 struct SelectExpression
@@ -272,14 +293,23 @@ struct CreateTableExpression
     std::optional<std::string> primary_key;
 };
 
-struct InsertExpression
+struct InsertValuesExpression
 {
     std::string relation;
     nlohmann::json tuple;
 };
 
-using ParsedExpression =
-    std::variant<SelectExpression, CreateTableExpression, InsertExpression>;
+struct InsertCSVExpression
+{
+    std::string relation;
+    std::string filename;
+};
+
+using ParsedExpression = std::variant<
+    SelectExpression,
+    CreateTableExpression,
+    InsertValuesExpression,
+    InsertCSVExpression>;
 
 auto literal_node_to_value(pegtl::parse_tree::node const& node) -> nlohmann::json;
 auto node_to_predicate_type(pegtl::parse_tree::node const& node) -> predicate_type;
