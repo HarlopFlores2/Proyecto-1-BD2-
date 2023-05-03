@@ -350,6 +350,54 @@ public:
         }
     }
 
+
+    vector<typeRecord> search(int key) {
+    fstream index(indexFile, ios::in | ios::binary);
+    fstream data(hashFile, ios::in | ios::binary);
+
+    // Calcular el index key
+    int indexKey = key % (1 << globalDepth);
+
+    // Buscar la entrada correspondiente en el index
+    index.seekg(indexKey * sizeIndex());
+    indexDepth temp;
+    index >> temp;
+
+    // Obtener la clave hash de los últimos 'lenLast' bits
+    string hashKey = to_hash(key, temp.lenLast);
+
+    // Dirigirse al bucket correspondiente en el archivo de datos
+    data.seekg(btoi(hashKey) * sizeBucket<typeRecord>());
+    Bucket<typeRecord> bucket;
+    data >> bucket;
+
+    // Crear un vector para almacenar los registros que coincidan con la key
+    vector<typeRecord> result;
+    // Se busca dentro del bucket correspondiente
+    for (int i = 0; i < bucket.size; i++) {
+        // Si el registro coincide con la key, agregarlo al vector result
+        if (bucket.records[i].getKey() == key)
+            result.push_back(bucket.records[i]);
+    }
+
+    // Si no se encuentra en el bucket, buscar en los siguientes (solo si hay encadenamiento)
+    int nextPosition = bucket.nextPosition;
+    while (nextPosition != -1) {
+        // Nos dirigimos al siguiente bucket en la cadena
+        data.seekg(nextPosition * sizeBucket<typeRecord>());
+        data >> bucket;
+        // Buscar registros coincidentes en el bucket
+        for (int i = 0; i < bucket.size; i++) {
+            if (bucket.records[i].getKey() == key)
+                result.push_back(bucket.records[i]);
+        }
+        // Actualizar la posición
+        nextPosition = bucket.nextPosition;
+    }
+    return result;
+}
+
+
 };
 
 
