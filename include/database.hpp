@@ -44,6 +44,8 @@ struct DataBase
         std::string const& relation_name, std::vector<predicate_type> const& predicates) const
         -> MemoryRelation;
     void insert(std::string const& relation_name, nlohmann::json const& tuple);
+    void
+    remove(std::string const& relation_name, std::vector<predicate_type> const& predicates);
 
     [[nodiscard]] auto evaluate(ParsedExpression const& pe) -> std::optional<MemoryRelation>;
 };
