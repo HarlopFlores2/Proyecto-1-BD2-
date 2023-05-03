@@ -53,6 +53,8 @@ struct FileRelation : public Relation
         friend auto operator==(Iterator const& a, Iterator const& b) -> bool;
         friend auto operator!=(Iterator const& a, Iterator const& b) -> bool;
 
+        auto calculate_index() const -> uint64_t;
+
     private:
         void advance_until_next_valid();
     };
