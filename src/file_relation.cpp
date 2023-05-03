@@ -147,6 +147,11 @@ auto operator!=(FileRelation::Iterator const& a, FileRelation::Iterator const& b
     return !(a == b);
 }
 
+auto FileRelation::Iterator::calculate_index() const -> uint64_t
+{
+    return (m_file_offset - sizeof(record_deleted_and_last)) / m_fr->m_record_size;
+}
+
 void FileRelation::Iterator::advance_until_next_valid()
 {
     uint64_t deleted_p = 0;
