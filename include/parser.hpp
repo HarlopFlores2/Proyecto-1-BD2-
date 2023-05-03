@@ -227,6 +227,7 @@ using selector = pegtl::parse_tree::selector<
     Rule,
     pegtl::parse_tree::store_content::on<
         identifier,
+        literal,
         lit_number,
         lit_unumber,
         lit_string,
