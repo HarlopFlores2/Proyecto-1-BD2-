@@ -167,6 +167,11 @@ auto DataBase::select(
     return ::select(this->get_relation(relation_name), predicates);
 }
 
+void DataBase::insert(std::string const& relation_name, nlohmann::json const& tuple)
+{
+    return this->get_relation(relation_name).insert(tuple);
+}
+
 auto DataBase::evaluate(ParsedExpression const& pe) -> std::optional<MemoryRelation>
 {
     auto ret = std::visit(
