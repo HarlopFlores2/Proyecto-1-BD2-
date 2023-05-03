@@ -47,5 +47,5 @@ struct DataBase
     void
     remove(std::string const& relation_name, std::vector<predicate_type> const& predicates);
 
-    [[nodiscard]] auto evaluate(ParsedExpression const& pe) -> std::optional<MemoryRelation>;
+    auto evaluate(ParsedExpression const& pe) -> std::optional<MemoryRelation>;
 };
