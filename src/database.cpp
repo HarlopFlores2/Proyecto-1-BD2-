@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <experimental/filesystem>
 #include <filesystem>
 #include <fstream>
@@ -8,6 +9,7 @@
 #include <vector>
 
 #include "attribute.hpp"
+#include "csv.hpp"
 #include "database.hpp"
 #include "json.hpp"
 #include "memory_relation.hpp"
@@ -211,8 +213,51 @@ auto DataBase::evaluate(ParsedExpression const& pe) -> std::optional<MemoryRelat
                 this->create_relation(cte.name, cte.attributes, cte.primary_key);
                 return {};
             },
-            [&](InsertExpression const& other) -> std::optional<MemoryRelation> {
+            [&](InsertValuesExpression const& other) -> std::optional<MemoryRelation> {
                 this->insert(other.relation, other.tuple);
+                return {};
+            },
+            [&](InsertCSVExpression const& i_csv_e) -> std::optional<MemoryRelation> {
+                FileRelation& r = this->get_relation(i_csv_e.relation);
+
+                csv::CSVReader reader(i_csv_e.filename);
+
+                std::vector<json> tuples_to_add;
+
+                for (csv::CSVRow& row : reader)
+                {
+                    if (row.size() != r.m_attributes.size())
+                    {
+                        throw std::runtime_error("Wrong number of elements in CSV row");
+                    }
+
+                    json tuple = json::array();
+
+                    auto a_it = r.m_attributes.begin();
+                    for (csv::CSVField& field : row)
+                    {
+                        auto s_field = field.get<>();
+
+                        std::visit(
+                            overloaded{
+                                [&](INTEGER const& /*i_t*/) {
+                                    int64_t i = std::stoll(s_field);
+                                    return tuple.push_back(i);
+                                },
+                                [&](VARCHAR const& /*vc_t*/) { tuple.push_back(s_field); }},
+                            a_it->type);
+
+                        ++a_it;
+                    }
+
+                    tuples_to_add.emplace_back(std::move(tuple));
+                }
+
+                for (auto& tuple : tuples_to_add)
+                {
+                    r.insert(tuple);
+                }
+
                 return {};
             }},
         pe);
