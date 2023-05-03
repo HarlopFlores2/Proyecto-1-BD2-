@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "file_relation.hpp"
 #include "json.hpp"
 #include "memory_relation.hpp"
 #include "parser.hpp"
@@ -32,6 +33,9 @@ struct DataBase
         std::optional<std::string> const& primary_key) -> FileRelation&;
 
     static auto generate_relation_filename(std::string const& relation_name) -> std::string;
+    [[nodiscard]] auto get_relation(std::string const& relation_name) -> FileRelation&;
+    [[nodiscard]] auto get_relation(std::string const& relation_name) const
+        -> FileRelation const&;
 
     [[nodiscard]] auto project(
         std::string const& relation_name,

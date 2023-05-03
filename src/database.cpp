@@ -129,9 +129,7 @@ auto DataBase::generate_relation_filename(std::string const& relation_name) -> s
     return relation_name + ".data";
 }
 
-auto DataBase::project(
-    std::string const& relation_name, std::vector<std::string> const& attributes_names) const
-    -> MemoryRelation
+auto DataBase::get_relation(std::string const& relation_name) -> FileRelation&
 {
     auto it = m_relations.find(relation_name);
 
@@ -140,21 +138,33 @@ auto DataBase::project(
         throw std::runtime_error("Relation " + relation_name + " does not exist.");
     }
 
-    return ::project(it->second, attributes_names);
+    return it->second;
+}
+
+auto DataBase::get_relation(std::string const& relation_name) const -> FileRelation const&
+{
+    auto it = m_relations.find(relation_name);
+
+    if (it == m_relations.end())
+    {
+        throw std::runtime_error("Relation " + relation_name + " does not exist.");
+    }
+
+    return it->second;
+}
+
+auto DataBase::project(
+    std::string const& relation_name, std::vector<std::string> const& attributes_names) const
+    -> MemoryRelation
+{
+    return ::project(this->get_relation(relation_name), attributes_names);
 }
 
 auto DataBase::select(
     std::string const& relation_name, std::vector<predicate_type> const& predicates) const
     -> MemoryRelation
 {
-    auto it = m_relations.find(relation_name);
-
-    if (it == m_relations.end())
-    {
-        throw std::runtime_error("Relation " + relation_name + " does not exist.");
-    }
-
-    return ::select(it->second, predicates);
+    return ::select(this->get_relation(relation_name), predicates);
 }
 
 auto DataBase::evaluate(ParsedExpression const& pe) -> std::optional<MemoryRelation>
