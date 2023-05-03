@@ -51,4 +51,23 @@ int main(){
     ExtendibleHash.readHash(4);
     cout << "*******\n";
     ExtendibleHash.readHash(5);
+
+
+
+    //Prueba de la funcion search
+    int searchKey = 6;
+    cout << "------" << endl;
+    vector<Record> searchResults = ExtendibleHash.search(searchKey);
+
+    if (searchResults.empty()) {
+        cout << "No se encontraron registros con documentID: " << searchKey << endl;
+    } else {
+        cout << "Registros encontrados con documentID: " << searchKey << endl;
+        for (Record &record : searchResults) {
+            record.print();
+            cout << "------" << endl;
+        }
+    }
+
+
 }
