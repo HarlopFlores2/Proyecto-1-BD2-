@@ -172,6 +172,12 @@ void DataBase::insert(std::string const& relation_name, nlohmann::json const& tu
     return this->get_relation(relation_name).insert(tuple);
 }
 
+void DataBase::remove(
+    std::string const& relation_name, std::vector<predicate_type> const& predicates)
+{
+    ::remove(this->get_relation(relation_name), predicates);
+}
+
 auto DataBase::evaluate(ParsedExpression const& pe) -> std::optional<MemoryRelation>
 {
     auto ret = std::visit(
