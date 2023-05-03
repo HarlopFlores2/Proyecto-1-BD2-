@@ -31,12 +31,15 @@ struct k_and : pegtl::istring<'a', 'n', 'd'> {};
 struct k_between : pegtl::istring<'b', 'e', 't', 'w', 'e', 'e', 'n'> {};
 struct k_create : pegtl::istring<'c', 'r', 'e', 'a', 't', 'e'> {};
 struct k_from : pegtl::istring<'f', 'r', 'o', 'm'> {};
+struct k_insert : pegtl::istring<'i', 'n', 's', 'e', 'r', 't'> {};
 struct k_integer : pegtl::istring<'i', 'n', 't', 'e', 'g', 'e', 'r'> {};
+struct k_into : pegtl::istring<'i', 'n', 't', 'o'> {};
 struct k_key : pegtl::istring<'k', 'e', 'y'> {};
 struct k_primary : pegtl::istring<'p', 'r', 'i', 'm', 'a', 'r', 'y'> {};
 struct k_select : pegtl::istring<'s', 'e', 'l', 'e', 'c', 't'> {};
 struct k_table : pegtl::istring<'t', 'a', 'b', 'l', 'e'> {};
 struct k_where : pegtl::istring<'w', 'h', 'e', 'r', 'e'> {};
+struct k_values : pegtl::istring<'v', 'a', 'l', 'u', 'e', 's'> {};
 struct k_varchar : pegtl::istring<'v', 'a', 'r', 'c', 'h', 'a', 'r'> {};
 struct k_semicolon : pegtl::one<';'> {};
 
@@ -192,7 +195,30 @@ struct s_create_table : pegtl::seq<
 >
 {};
 
-struct grammar : pegtl::must<pegtl::sor<s_select, s_create_table>> {};
+struct insert_values : pegtl::list<
+    literal,
+    pegtl::one<','>,
+    pegtl::space
+> {};
+
+struct s_insert : pegtl::seq<
+    k_insert,
+    spaces_p,
+    k_into,
+    spaces_p,
+    table_name,
+    spaces_p,
+    k_values,
+    spaces_p,
+    pegtl::one<'('>,
+    spaces_s,
+    insert_values,
+    spaces_s,
+    pegtl::one<')'>,
+    k_semicolon
+> {};
+
+struct grammar : pegtl::must<pegtl::sor<s_select, s_create_table, s_insert>> {};
 
 // clang-format on
 
@@ -225,7 +251,10 @@ using selector = pegtl::parse_tree::selector<
         s_create_table,
         table_name,
         column_def,
-        column_defs>,
+        column_defs,
+
+        s_insert,
+        insert_values>,
     pegtl::parse_tree::fold_one::on<identifier_or_literal>>;
 
 struct SelectExpression
@@ -242,7 +271,14 @@ struct CreateTableExpression
     std::optional<std::string> primary_key;
 };
 
-using ParsedExpression = std::variant<SelectExpression, CreateTableExpression>;
+struct InsertExpression
+{
+    std::string relation;
+    nlohmann::json tuple;
+};
+
+using ParsedExpression =
+    std::variant<SelectExpression, CreateTableExpression, InsertExpression>;
 
 auto literal_node_to_value(pegtl::parse_tree::node const& node) -> nlohmann::json;
 auto node_to_predicate_type(pegtl::parse_tree::node const& node) -> predicate_type;
