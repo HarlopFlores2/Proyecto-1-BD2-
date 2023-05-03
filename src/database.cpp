@@ -204,6 +204,10 @@ auto DataBase::evaluate(ParsedExpression const& pe) -> std::optional<MemoryRelat
             [&](CreateTableExpression const& cte) -> std::optional<MemoryRelation> {
                 this->create_relation(cte.name, cte.attributes, cte.primary_key);
                 return {};
+            },
+            [&](InsertExpression const& other) -> std::optional<MemoryRelation> {
+                this->insert(other.relation, other.tuple);
+                return {};
             }},
         pe);
 
