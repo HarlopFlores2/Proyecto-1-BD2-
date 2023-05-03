@@ -236,6 +236,37 @@ auto process_create_table(p_node const& ct_node) -> CreateTableExpression
     return ret;
 }
 
+auto process_insert(p_node const& insert_node) -> InsertExpression
+{
+    p_node const& t_name = *insert_node.children[0];
+    assert(t_name.is_type<table_name>());
+
+    p_node const& values = *insert_node.children[1];
+    assert(values.is_type<insert_values>());
+
+    InsertExpression ret;
+    ret.relation = t_name.string();
+
+    assert(values.children.size() > 0);
+    for (auto const& it : values.children)
+    {
+        if (it->is_type<lit_number>())
+        {
+            ret.tuple.emplace_back(std::stoll(it->string()));
+        }
+        else if (it->is_type<lit_string>())
+        {
+            ret.tuple.emplace_back(it->string());
+        }
+        else
+        {
+            throw std::runtime_error("Not implemented");
+        }
+    }
+
+    return ret;
+}
+
 auto process_tree(p_node const& node) -> ParsedExpression
 {
     if (!node.is_root())
@@ -253,6 +284,10 @@ auto process_tree(p_node const& node) -> ParsedExpression
     else if (exp.is_type<s_create_table>())
     {
         return {process_create_table(exp)};
+    }
+    else if (exp.is_type<s_insert>())
+    {
+        return {process_insert(exp)};
     }
     else
     {
