@@ -53,9 +53,9 @@ struct Record {
     }
 };
 
-const int globalDepth = 2;
+const int globalDepth = 5;
 const int globalSize = (1<<globalDepth);
-const int maxSizeBucket = 2;
+const int maxSizeBucket = 5;
 
 template<typename typeRecord>
 struct Bucket {
@@ -165,6 +165,7 @@ void updateIndex(fstream &f, string h){
         }
         pos++;
     }
+    f.close();
 }
 
 
@@ -192,6 +193,8 @@ public:
             data.seekp(i * sizeBucket<typeRecord>());
             data << BucketT;
         }
+        data.close();
+        index.close();
         // setear hashFile
 
         rapidcsv::Document document(csvFile);
@@ -214,10 +217,9 @@ public:
         Bucket<typeRecord> oldBucket;
         data.seekg(btoi(hashKey) * sizeBucket<typeRecord>());
         data >> oldBucket;
-        // encadenar
         if(oldBucket.size == maxSizeBucket){
             if(hashKey.size() == globalDepth) {
-                //cout << "desborde" << endl;
+                // encadenar
                 Bucket<typeRecord> tempBucket;
                 Bucket<typeRecord> lastBucket;
 
@@ -235,8 +237,10 @@ public:
                     data << lastBucket1;
                 }else {
                     bool ok = false;
+                    int auxLastPos = lastPos;
                     while(lastPos != -1){
                         data.seekg(lastPos * sizeBucket<typeRecord>());
+                        if(lastPos != -1) auxLastPos = lastPos;
                         data >> tempBucket;
                         if(tempBucket.size<maxSizeBucket){
                             tempBucket.records[tempBucket.size++] = record;
@@ -250,6 +254,9 @@ public:
                     if(!ok){
                         data.seekg(0,ios::end);
                         tempBucket.nextPosition = data.tellg()/ sizeBucket<typeRecord>();
+                        data.seekp(auxLastPos * sizeBucket<typeRecord>());
+                        data << tempBucket;
+                        data.seekg(0,ios::end);
                         data.seekp(data.tellg());
                         lastBucket.records[0] = record;
                         lastBucket.size++;
@@ -286,6 +293,7 @@ public:
                 insert(record);
             }
         }else{
+            // insertion
             index.seekg(key * sizeIndex());
             indexDepth temp;
             index >> temp;
@@ -317,12 +325,6 @@ public:
     }
 
     void printBucket(string s){
-        /*
-        for(int i=0;i<buckets[s].size;i++){
-            cout << buckets[s].records[i].getKey()<< " ";
-        }
-        cout<<endl;
-         */
         fstream index(indexFile, ios::out | ios::in | ios::binary);
         fstream data(hashFile,ios::out | ios::in | ios::binary);
         cout << s << endl;
@@ -336,18 +338,18 @@ public:
             for (int i = 0; i < tempBucket.size; i++) {
                 tempBucket.records[i].print();
             }
+            int nxtPos = tempBucket.nextPosition;
+            while (nxtPos != -1){
+                cout<<"encadenamiento\n";
+                data.seekg(nxtPos * sizeBucket<typeRecord>());
+                data >> tempBucket;
+                for (int i = 0; i < tempBucket.size; i++) {
+                    tempBucket.records[i].print();
+                }
+                nxtPos = tempBucket.nextPosition;
+            }
         }
         cout << endl;
-    }
-
-    void printall(string f){
-        fstream fs(f,ios::out | ios::in | ios::binary);
-        indexDepth tmp;
-        int pos = 0;
-        while(fs >> tmp  and pos <=10) {
-            tmp.print();
-            pos++;
-        }
     }
 
 };
