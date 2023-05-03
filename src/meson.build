@@ -1,3 +1,5 @@
+thread_dep = dependency('threads')
+
 bd2_p2_library = library('bd2_p2',
                            'attribute.cpp',
                            'base_relation.cpp',
@@ -6,6 +8,7 @@ bd2_p2_library = library('bd2_p2',
                            'memory_relation.cpp',
                            'predicates.cpp',
                            link_with : [],
+                           dependencies : thread_dep,
                            include_directories : inc)
 
 parser_library = library('parser',
