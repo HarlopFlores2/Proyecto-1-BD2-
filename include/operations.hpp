@@ -143,6 +143,18 @@ auto select(R const& relation, std::vector<predicate_type> const& predicates) ->
 template<
     typename R,
     typename Un = typename std::enable_if<std::is_base_of<Relation, R>::value>::type>
+void remove(R& relation, std::vector<predicate_type> const& predicates)
+{
+    auto indexes_to_remove = select_indexes(relation, predicates);
+    for (auto index : indexes_to_remove)
+    {
+        relation.remove(index);
+    }
+}
+
+template<
+    typename R,
+    typename Un = typename std::enable_if<std::is_base_of<Relation, R>::value>::type>
 void relation_to_csv(R const& relation, std::ostream& out)
 {
     auto writer = csv::make_csv_writer(out);
