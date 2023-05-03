@@ -250,13 +250,15 @@ auto process_insert(p_node const& insert_node) -> InsertExpression
     assert(values.children.size() > 0);
     for (auto const& it : values.children)
     {
-        if (it->is_type<lit_number>())
+        auto const& lit_value = *it->children.front();
+
+        if (lit_value.is_type<lit_number>())
         {
-            ret.tuple.emplace_back(std::stoll(it->string()));
+            ret.tuple.emplace_back(std::stoll(lit_value.string()));
         }
-        else if (it->is_type<lit_string>())
+        else if (lit_value.is_type<lit_string>())
         {
-            ret.tuple.emplace_back(it->string());
+            ret.tuple.emplace_back(lit_value.string());
         }
         else
         {
