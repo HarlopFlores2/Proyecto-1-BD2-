@@ -1,4 +1,4 @@
-# Proyecto-1-BD2-
+# Proyecto 1 - BD2
 
 ## Introducción
 
@@ -40,7 +40,7 @@ punteros para finalmente unirlos.
 
 Se lee el archivo csv con la libreria rapidcsv, donde cada linea representa
 un registro de longitud fija y este registro es encapsulado por la estructura fixedRecord 
-que tiene por atributos extras a nextFile y nextPositon que representan los 
+que tiene por atributos extras a `nextFile` y `nextPosition` que representan los 
 punteros, para luego escribirlos en el archivo dataFile, que tiene un header
 que apunta al registro con el menor valor de la llave.
 
@@ -67,6 +67,13 @@ con longitud fija.
 `Complejidad: O(log n + k)`
 
 ### Remove
+
+Esta funcion elimina registros manteniendo actualizados los punteros en los archivos. 
+Primero se verifica que la llave exista, luego procedemos a actualizar los punteros 
+del anterior registro a ser eliminado y marcamos el registro a ser eliminado en el campo `deleted`. 
+Despues, procedemos a escribir los registros actualizados en los archivos dataFile y auxFile.
+
+`Complejidad: O(log n + k)`
 
 ## Extendible Hash
 
