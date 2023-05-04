@@ -70,7 +70,13 @@ public:
     explicit sequentialFile(std::string data_file, std::string aux_file, int max_aux_size)
         : m_data_file(std::move(data_file)),
           m_aux_file(std::move(aux_file)),
-          m_max_aux_size(max_aux_size){};
+          m_max_aux_size(max_aux_size)
+    {
+        if (m_max_aux_size < 1)
+        {
+            throw std::runtime_error("max_aux_size must be larger than 1");
+        }
+    };
 
     int count_deleted()
     {
