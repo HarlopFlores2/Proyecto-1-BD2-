@@ -1,32 +1,22 @@
 #include "sequentialFile.h"
-
+#include<ctime>
 
 int main(){
-    vector<string> f1 = {"1", "10", "3", "4", "5", "6", "7", "8"};
-    vector<string> f2 = {"11", "20", "31", "41", "51", "61", "71", "81"};
-    vector<string> f3 = {"11", "30", "31", "41", "51", "61", "71", "81"};
-    fixedRecord<Record, int> fixedRecord1, fixedRecord2, fixedRecord3;
+    vector<string> f1 = {"1", "2", "3", "4", "5", "6", "7", "8"};
+    fixedRecord<Record, int> fixedRecord1;
     fixedRecord1.load(f1);
-    fixedRecord2.load(f2);
-    fixedRecord3.load(f3);
     sequentialFile<Record, int> SequentialFile(2);
 
     //Prueba 1 - limpiar campos en data y aux
     SequentialFile.load_data("../file_out.csv");
-    SequentialFile.insert(fixedRecord1);
-    SequentialFile.insert(fixedRecord2);
-    //SequentialFile.removeRecord(5);
-    SequentialFile.insert(fixedRecord3);
-    //SequentialFile.readRecordAux(0);
-    //SequentialFile.readRecordAux(1);
-    //SequentialFile.readRecordData(0);
-    //SequentialFile.print_all("../dataFile.dat");
-    //SequentialFile.readRecordAux(0);
-    //SequentialFile.readRecordAux(1);
-    //SequentialFile.readRecordAux(2);
-    //cout << SequentialFile.findLocation(0).second << endl;
 
+    unsigned t0, t1;
 
+    t0=clock();
+    vector<fixedRecord<Record,int>> v = SequentialFile.search(5022);
+    t1 = clock();
 
+    double long time = ((double long)(t1-t0)/CLOCKS_PER_SEC);
+    cout << "Execution Time: " << time << endl;
 
 }

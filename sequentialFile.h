@@ -137,7 +137,7 @@ public:
         fixedRecord<typeRecord,typeKey> recIt;
         data.seekg(0,ios::end);
         int pos = 0, cant = data.tellg() / sizeRecord();
-        while(pos<=cant){
+        while(pos<cant){
             data.seekg(pos * sizeRecord());
             data >> recIt;
             if (recIt.deleted) countDeleted++;
@@ -145,7 +145,7 @@ public:
         }
         aux.seekg(0,ios::end);
         pos = 0, cant = aux.tellg() / sizeRecord();
-        while(pos<=cant){
+        while(pos<cant){
             aux.seekg(pos*sizeRecord());
             aux >> recIt;
             if (recIt.deleted) countDeleted++;
@@ -279,7 +279,10 @@ public:
                 data.seekg(prev.second * sizeRecord());
                 fixedRecord<typeRecord, typeKey> temp;
                 data >> temp;
-                if (temp.getKey() == record.getKey()) return false;
+                if (temp.getKey() == record.getKey()) {
+                    cerr << "Ya existe la key insertada\n";
+                    return false;
+                }
                 // actualizar puntero de record
                 record.nextPosition = temp.nextPosition;
                 record.nextFile = temp.nextFile;
@@ -297,7 +300,10 @@ public:
                 aux.seekg(prev.second * sizeRecord());
                 fixedRecord<typeRecord, typeKey> temp;
                 aux >> temp;
-                if (temp.getKey() == record.getKey()) return false;
+                if (temp.getKey() == record.getKey()) {
+                    cerr << "Ya existe la key insertada\n";
+                    return false;
+                }
                 // actualizar puntero de record
                 record.nextPosition = temp.nextPosition;
                 record.nextFile = temp.nextFile;
@@ -419,7 +425,8 @@ public:
             temp.nextPosition = curr.nextPosition;
             pos++;
         }
-        cout<<pos<<endl;
+        data.close();
+        aux.close();
     }
 
     void readRecordData(int pos) {
@@ -483,6 +490,8 @@ public:
                 }
             }
         }
+        data.close();
+        aux.close();
         return {file, index};
     }
 
