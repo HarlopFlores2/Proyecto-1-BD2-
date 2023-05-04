@@ -1,49 +1,39 @@
 #pragma once
 
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iostream>
 #include <optional>
+#include <ostream>
 #include <string>
 #include <unistd.h>
 #include <utility>
 #include <vector>
 
-#include "rapidcsv.h"
-
 using namespace std;
 
-template<typename typeRecord, typename typeKey>
-struct fixedRecord
+template<typename Key>
+struct IndexRecord
 {
-    typeRecord record;
-    int nextFile = 0;
-    long nextPosition = -1;
+    Key key;
+    uint64_t relation_index;
+
+    int next_file = 0;
+    long next_position = -1;
     int deleted = 0;
 
-    void load(vector<string> data)
+    void print(std::ostream& out = std::cerr)
     {
-        record.load(data);
-    }
-
-    typeKey getKey()
-    {
-        return record.getKey();
-    }
-
-    void print()
-    {
-        record.print();
-        cout << "nextFile: " << nextFile << endl;
-        cout << "nextPosition: " << nextPosition << endl;
-        cout << "deleted: " << deleted << endl;
+        out << "{" << key << ": " << relation_index << ", " << next_file << ", " << deleted
+            << "}\n";
     }
 };
 
 template<typename typeRecord, typename typeKey>
-ostream& operator<<(ostream& stream, fixedRecord<typeRecord, typeKey>& p)
+ostream& operator<<(ostream& stream, IndexRecord<typeRecord, typeKey>& p)
 {
     stream.write((char*)&p, sizeof(p));
     stream << flush;
@@ -51,7 +41,7 @@ ostream& operator<<(ostream& stream, fixedRecord<typeRecord, typeKey>& p)
 }
 
 template<typename typeRecord, typename typeKey>
-istream& operator>>(istream& stream, fixedRecord<typeRecord, typeKey>& p)
+istream& operator>>(istream& stream, IndexRecord<typeRecord, typeKey>& p)
 {
     stream.read((char*)&p, sizeof(p));
     return stream;
@@ -70,42 +60,51 @@ public:
           m_aux_file(std::move(aux_file)),
           m_max_aux_size(max_aux_size){};
 
-    int countD(char const* d, char const* a)
+    int count_deleted()
     {
-        fstream data(d, ios::in | ios::binary);
-        fstream aux(a, ios::in | ios::binary);
-        int countDeleted = 0;
-        fixedRecord<typeRecord, typeKey> recIt;
+        fstream data(m_data_file, ios::in | ios::binary);
+        fstream aux(m_aux_file, ios::in | ios::binary);
+
+        int count = 0;
+
+        IndexRecord<typeRecord, typeKey> rec;
+
         data.seekg(0, ios::end);
-        int pos = 0, cant = data.tellg() / sizeRecord();
+
+        int pos = 0;
+        int cant = data.tellg() / sizeRecord();
+
         while (pos <= cant)
         {
             data.seekg(pos * sizeRecord());
-            data >> recIt;
-            if (recIt.deleted)
-                countDeleted++;
+            data >> rec;
+
+            if (rec.deleted)
+                count++;
+
             pos++;
         }
+
         aux.seekg(0, ios::end);
         pos = 0, cant = aux.tellg() / sizeRecord();
+
         while (pos <= cant)
         {
             aux.seekg(pos * sizeRecord());
-            aux >> recIt;
-            if (recIt.deleted)
-                countDeleted++;
+            aux >> rec;
+            if (rec.deleted)
+                count++;
             pos++;
         }
-        data.close();
-        aux.close();
-        return countDeleted;
+
+        return count;
     }
 
     void print_all(string file)
     {
         fstream filet(file, ios::in | ios::binary);
         int pos = 0;
-        fixedRecord<typeRecord, typeKey> temp;
+        IndexRecord<typeRecord, typeKey> temp;
         while (filet >> temp)
         {
             pos++;
@@ -115,11 +114,11 @@ public:
         cout << "*****************\n";
     }
 
-    vector<fixedRecord<typeRecord, typeKey>> search(int key)
+    vector<IndexRecord<typeRecord, typeKey>> search(int key)
     {
         // Crear un vector para almacenar los resultados
-        vector<fixedRecord<typeRecord, typeKey>> results;
-        fixedRecord<typeRecord, typeKey> temp;
+        vector<IndexRecord<typeRecord, typeKey>> results;
+        IndexRecord<typeRecord, typeKey> temp;
         fstream data(m_data_file, ios::in | ios::binary);
         fstream aux(m_aux_file, ios::in | ios::binary);
 
@@ -136,7 +135,7 @@ public:
             data >> temp;
             // Si la clave coincide y el registro no está marcado como eliminado, agregar al
             // vector
-            if (temp.getKey() == key && !temp.deleted)
+            if (temp.key == key && !temp.deleted)
             {
                 results.push_back(temp);
             }
@@ -148,7 +147,7 @@ public:
             aux >> temp;
             // Si la clave coincide y el registro no está marcado como eliminado, agregar al
             // vector
-            if (temp.getKey() == key && !temp.deleted)
+            if (temp.key == key && !temp.deleted)
             {
                 results.push_back(temp);
             }
@@ -158,10 +157,10 @@ public:
         return results;
     }
 
-    vector<fixedRecord<typeRecord, typeKey>> range_search(int keyBegin, int keyEnd)
+    vector<IndexRecord<typeRecord, typeKey>> range_search(int keyBegin, int keyEnd)
     {
-        vector<fixedRecord<typeRecord, typeKey>> results;
-        fixedRecord<typeRecord, typeKey> temp;
+        vector<IndexRecord<typeRecord, typeKey>> results;
+        IndexRecord<typeRecord, typeKey> temp;
 
         // Si el rango no es válido, retornar vacio
         if (keyBegin > keyEnd)
@@ -189,7 +188,7 @@ public:
                 data >> temp;
                 // Si la clave está en el rango y el registro no está marcado como eliminado,
                 // agregar al vector
-                if (temp.getKey() >= keyBegin && temp.getKey() <= keyEnd && !temp.deleted)
+                if (temp.key >= keyBegin && temp.key <= keyEnd && !temp.deleted)
                 {
                     results.push_back(temp);
                 }
@@ -208,7 +207,7 @@ public:
                 aux >> temp;
                 // Si la clave está en el rango y el registro no está marcado como eliminado,
                 // agregar al vector
-                if (temp.getKey() >= keyBegin && temp.getKey() <= keyEnd && !temp.deleted)
+                if (temp.key >= keyBegin && temp.key <= keyEnd && !temp.deleted)
                 {
                     results.push_back(temp);
                 }
@@ -219,7 +218,7 @@ public:
         return results;
     }
 
-    bool insert(fixedRecord<typeRecord, typeKey> record)
+    bool insert(IndexRecord<typeRecord, typeKey> record)
     {
         fstream data(m_data_file, ios::out | ios::in | ios::binary);
         fstream aux(m_aux_file, ios::out | ios::in | ios::binary);
@@ -244,7 +243,7 @@ public:
         else
         {
             // si la key no esta
-            pair<int, int> prev = findLocation(record.getKey());
+            pair<int, int> prev = findLocation(record.key);
             // cout << prev.first << " " << prev.second << endl;
             aux.seekg(0, ios::end);
             long sizeAux = aux.tellg() / sizeRecord();
@@ -252,9 +251,9 @@ public:
             {
                 // si la key esta en data
                 data.seekg(prev.second * sizeRecord());
-                fixedRecord<typeRecord, typeKey> temp;
+                IndexRecord<typeRecord, typeKey> temp;
                 data >> temp;
-                if (temp.getKey() == record.getKey())
+                if (temp.key == record.key)
                     return false;
                 // actualizar puntero de record
                 record.nextPosition = temp.nextPosition;
@@ -273,9 +272,9 @@ public:
             {
                 // si la key esta en aux
                 aux.seekg(prev.second * sizeRecord());
-                fixedRecord<typeRecord, typeKey> temp;
+                IndexRecord<typeRecord, typeKey> temp;
                 aux >> temp;
-                if (temp.getKey() == record.getKey())
+                if (temp.key == record.key)
                     return false;
                 // actualizar puntero de record
                 record.nextPosition = temp.nextPosition;
@@ -300,7 +299,7 @@ public:
         if (!data || !aux)
             return false;
 
-        fixedRecord<typeRecord, typeKey> tempPrev, temp;
+        IndexRecord<typeRecord, typeKey> tempPrev, temp;
         pair<int, int> loc = findLocation(key); // <file, position>
         if (loc.first == 0)
         {
@@ -313,7 +312,7 @@ public:
             aux >> temp;
         }
 
-        if (temp.getKey() != key || temp.deleted)
+        if (temp.key != key || temp.deleted)
         {
             cerr << "No existe registro con ese key\n";
             return false;
@@ -376,11 +375,11 @@ public:
         fstream data2("../dataFile2.dat", ios::out | ios::binary);
         if (!data || !aux)
             return;
-        fixedRecord<typeRecord, typeKey> header, temp;
+        IndexRecord<typeRecord, typeKey> header, temp;
         data.seekg(0, ios::end);
 
         int newSize = m_max_aux_size + (data.tellg() / sizeRecord());
-        int countDeleted = countD(m_data_file, m_aux_file);
+        int countDeleted = count_deleted(m_data_file, m_aux_file);
         cout << countDeleted << '\n';
         newSize -= countDeleted;
         data.seekg(0);
@@ -394,12 +393,12 @@ public:
         cout << temp.nextPosition << " " << temp.nextFile << endl;
         while (temp.nextPosition != -1 and temp.nextFile != -1)
         {
-            fixedRecord<typeRecord, typeKey> curr;
+            IndexRecord<typeRecord, typeKey> curr;
             if (temp.nextFile == 0)
             {
                 data.seekg(temp.nextPosition * sizeRecord());
                 data >> curr;
-                fixedRecord<typeRecord, typeKey> curr1 = curr;
+                IndexRecord<typeRecord, typeKey> curr1 = curr;
                 curr1.nextPosition = pos + 1 < newSize ? pos + 1 : -1;
                 curr1.nextFile = pos + 1 < newSize ? 0 : -1;
                 data2.seekp(pos * sizeRecord());
@@ -409,7 +408,7 @@ public:
             {
                 aux.seekg(temp.nextPosition * sizeRecord());
                 aux >> curr;
-                fixedRecord<typeRecord, typeKey> curr1 = curr;
+                IndexRecord<typeRecord, typeKey> curr1 = curr;
                 curr1.nextPosition = pos + 1 < newSize ? pos + 1 : -1;
                 curr1.nextFile = pos + 1 < newSize ? 0 : -1;
                 data2.seekp(pos * sizeRecord());
@@ -427,7 +426,7 @@ public:
         // read record from dataFile
         fstream data(m_data_file, ios::in | ios::binary);
         data.seekg(pos * sizeRecord());
-        fixedRecord<typeRecord, typeKey> record;
+        IndexRecord<typeRecord, typeKey> record;
         data >> record;
         data.close();
         record.print();
@@ -439,7 +438,7 @@ public:
         fstream aux(m_aux_file, ios::in | ios::binary);
         if (!data || !aux)
             return {-1, -1};
-        fixedRecord<typeRecord, typeKey> temp;
+        IndexRecord<typeRecord, typeKey> temp;
         data.seekg(0, ios::end);
         long sizeData = data.tellg();
         long l = 0;
@@ -451,7 +450,7 @@ public:
             long m = l + (r - l) / 2;
             data.seekg(m * sizeRecord());
             data >> temp;
-            if (temp.getKey() == key)
+            if (temp.key == key)
             {
                 if (!temp.deleted)
                 {
@@ -459,7 +458,7 @@ public:
                     index = m;
                 }
             }
-            if (temp.getKey() < key)
+            if (temp.key < key)
                 l = m + 1;
             else
                 r = m - 1;
@@ -479,14 +478,14 @@ public:
             int nextPosition = temp.nextPosition;
             while (nextFile == 1)
             {
-                fixedRecord<typeRecord, typeKey> tempAux;
+                IndexRecord<typeRecord, typeKey> tempAux;
                 aux.seekg(nextPosition * sizeRecord());
                 aux >> tempAux;
-                if (tempAux.getKey() > key)
+                if (tempAux.key > key)
                 {
                     break;
                 }
-                else if (tempAux.getKey() == key)
+                else if (tempAux.key == key)
                 {
                     file = 1;
                     index = nextPosition;
@@ -508,7 +507,7 @@ public:
     {
         fstream aux(m_aux_file, ios::in | ios::binary);
         aux.seekg(pos * sizeRecord());
-        fixedRecord<typeRecord, typeKey> record;
+        IndexRecord<typeRecord, typeKey> record;
         aux >> record;
         aux.close();
         record.print();
@@ -516,6 +515,6 @@ public:
 
     int sizeRecord()
     {
-        return sizeof(fixedRecord<typeRecord, typeKey>);
+        return sizeof(IndexRecord<typeRecord, typeKey>);
     }
 };
