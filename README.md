@@ -116,5 +116,28 @@ de todo el archivo HashFile.
 
 
 
+## Resultados
 
+Para la realización de experimentos, se creó datasets de tamaño 100, 1k, y 10k. Los cuales están guardados en un archivo .csv
+
+### Tiempo de ejecución
+
+<Image>
+
+Dataset | Tiempo (ms)
+------------ | -------------
+100 | 6
+1k | 9
+10k | 3
+
+
+### Accesos a memoria secundaria
+
+<Image>
+
+Dataset | Total de accesos
+------------ | -------------
+100 | 10
+1k | 12
+10k | 16
 
