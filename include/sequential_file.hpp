@@ -60,13 +60,13 @@ istream& operator>>(istream& stream, fixedRecord<typeRecord, typeKey>& p)
 template<typename typeRecord, typename typeKey>
 class sequentialFile
 {
-    char const* dataFile = "../dataFile.dat";
-    char const* auxFile = "../auxFile.dat";
-    int maxAuxSize;
+    std::string m_data_file;
+    std::string m_aux_file;
+    int m_max_aux_size;
 
 public:
-    explicit sequentialFile(int maxAuxSize)
-        : maxAuxSize(maxAuxSize){};
+    explicit sequentialFile(std::string data_file, int maxAuxSize)
+        : m_max_aux_size(maxAuxSize){};
 
     int countD(char const* d, char const* a)
     {
@@ -118,8 +118,8 @@ public:
         // Crear un vector para almacenar los resultados
         vector<fixedRecord<typeRecord, typeKey>> results;
         fixedRecord<typeRecord, typeKey> temp;
-        fstream data(dataFile, ios::in | ios::binary);
-        fstream aux(auxFile, ios::in | ios::binary);
+        fstream data(m_data_file, ios::in | ios::binary);
+        fstream aux(m_aux_file, ios::in | ios::binary);
 
         if (!data || !aux)
             return results; // Si no se pueden abrir los archivos, retorna vacio
@@ -167,8 +167,8 @@ public:
             return results;
         }
 
-        fstream data(dataFile, ios::in | ios::binary);
-        fstream aux(auxFile, ios::in | ios::binary);
+        fstream data(m_data_file, ios::in | ios::binary);
+        fstream aux(m_aux_file, ios::in | ios::binary);
 
         if (!data || !aux)
             return results; // Si no se pueden abrir los archivos, retorna nada
@@ -219,14 +219,14 @@ public:
 
     bool insert(fixedRecord<typeRecord, typeKey> record)
     {
-        fstream data(dataFile, ios::out | ios::in | ios::binary);
-        fstream aux(auxFile, ios::out | ios::in | ios::binary);
+        fstream data(m_data_file, ios::out | ios::in | ios::binary);
+        fstream aux(m_aux_file, ios::out | ios::in | ios::binary);
         fstream data2("../dataFile2.dat", ios::out | ios::binary);
         if (!data || !aux)
             return false;
         aux.seekg(0, ios::end);
         long sizeAux = aux.tellg() / sizeRecord();
-        if (sizeAux == maxAuxSize)
+        if (sizeAux == m_max_aux_size)
         {
             merge_data();
             data.close();
@@ -234,7 +234,7 @@ public:
             data2.close();
             rename("..//dataFile2.dat", "..//dataFile.dat");
             ofstream auxTemp;
-            auxTemp.open(auxFile, ios::out | ios::trunc);
+            auxTemp.open(m_aux_file, ios::out | ios::trunc);
             auxTemp.close();
             insert(record);
             return true;
@@ -293,8 +293,8 @@ public:
 
     bool removeRecord(int key)
     {
-        fstream data(dataFile, ios::in | ios::out | ios::binary);
-        fstream aux(auxFile, ios::in | ios::out | ios::binary);
+        fstream data(m_data_file, ios::in | ios::out | ios::binary);
+        fstream aux(m_aux_file, ios::in | ios::out | ios::binary);
         if (!data || !aux)
             return false;
 
@@ -369,16 +369,16 @@ public:
 
     void merge_data()
     {
-        fstream data(dataFile, ios::in | ios::binary);
-        fstream aux(auxFile, ios::in | ios::binary);
+        fstream data(m_data_file, ios::in | ios::binary);
+        fstream aux(m_aux_file, ios::in | ios::binary);
         fstream data2("../dataFile2.dat", ios::out | ios::binary);
         if (!data || !aux)
             return;
         fixedRecord<typeRecord, typeKey> header, temp;
         data.seekg(0, ios::end);
 
-        int newSize = maxAuxSize + (data.tellg() / sizeRecord());
-        int countDeleted = countD(dataFile, auxFile);
+        int newSize = m_max_aux_size + (data.tellg() / sizeRecord());
+        int countDeleted = countD(m_data_file, m_aux_file);
         cout << countDeleted << '\n';
         newSize -= countDeleted;
         data.seekg(0);
@@ -423,7 +423,7 @@ public:
     void readRecordData(int pos)
     {
         // read record from dataFile
-        fstream data(dataFile, ios::in | ios::binary);
+        fstream data(m_data_file, ios::in | ios::binary);
         data.seekg(pos * sizeRecord());
         fixedRecord<typeRecord, typeKey> record;
         data >> record;
@@ -433,8 +433,8 @@ public:
 
     pair<int, int> findLocation(int key)
     {
-        fstream data(dataFile, ios::in | ios::binary);
-        fstream aux(auxFile, ios::in | ios::binary);
+        fstream data(m_data_file, ios::in | ios::binary);
+        fstream aux(m_aux_file, ios::in | ios::binary);
         if (!data || !aux)
             return {-1, -1};
         fixedRecord<typeRecord, typeKey> temp;
@@ -504,7 +504,7 @@ public:
 
     void readRecordAux(int pos)
     {
-        fstream aux(auxFile, ios::in | ios::binary);
+        fstream aux(m_aux_file, ios::in | ios::binary);
         aux.seekg(pos * sizeRecord());
         fixedRecord<typeRecord, typeKey> record;
         aux >> record;
