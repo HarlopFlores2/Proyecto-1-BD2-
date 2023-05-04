@@ -82,6 +82,9 @@ struct fixedRecord{
 
 };
 
+int countWrite = 0;
+int countRead = 0;
+
 template<typename typeRecord, typename typeKey>
 ostream &operator<<(ostream &stream, fixedRecord<typeRecord,typeKey> &p) {
     stream.write((char *) &p, sizeof(p));
