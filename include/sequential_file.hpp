@@ -32,19 +32,31 @@ struct IndexRecord
     }
 };
 
-template<typename typeRecord, typename typeKey>
-ostream& operator<<(ostream& stream, IndexRecord<typeRecord, typeKey>& p)
+template<typename Key>
+ostream& operator<<(ostream& out, IndexRecord<Key> const& p)
 {
-    stream.write((char*)&p, sizeof(p));
-    stream << flush;
-    return stream;
+    // TODO: Think how key
+
+    out.write(reinterpret_cast<char const*>(&p.relation_index), sizeof(p.relation_index));
+    out.write(reinterpret_cast<char const*>(&p.next_file), sizeof(p.next_file));
+    out.write(reinterpret_cast<char const*>(&p.next_position), sizeof(p.next_position));
+    out.write(reinterpret_cast<char const*>(&p.deleted), sizeof(p.deleted));
+
+    out.flush();
+    return out;
 }
 
-template<typename typeRecord, typename typeKey>
-istream& operator>>(istream& stream, IndexRecord<typeRecord, typeKey>& p)
+template<typename Key>
+istream& operator>>(istream& in, IndexRecord<Key>& p)
 {
-    stream.read((char*)&p, sizeof(p));
-    return stream;
+    // TODO: Think how key
+
+    in.read(reinterpret_cast<char*>(&p.relation_index), sizeof(p.relation_index));
+    in.read(reinterpret_cast<char*>(&p.next_file), sizeof(p.next_file));
+    in.read(reinterpret_cast<char*>(&p.next_position), sizeof(p.next_position));
+    in.read(reinterpret_cast<char*>(&p.deleted), sizeof(p.deleted));
+
+    return in;
 }
 
 template<typename typeRecord, typename typeKey>
