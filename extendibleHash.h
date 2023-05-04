@@ -53,9 +53,9 @@ struct Record {
     }
 };
 
-const int globalDepth = 5;
+const int globalDepth = 10;
 const int globalSize = (1<<globalDepth);
-const int maxSizeBucket = 4;
+const int maxSizeBucket = 8;
 
 template<typename typeRecord>
 struct Bucket {
@@ -182,10 +182,9 @@ template<typename typeRecord>
 class extendibleHash{
     string hashFile = "../hashFile.dat";
     string indexFile = "../indexFile.dat";
-    string csvFile = "../pruebaHash.csv";
 public:
     extendibleHash(){};
-    void load(){
+    void load(const string & csvFile){
         fstream index(indexFile, ios::out | ios::binary);
         fstream data(hashFile, ios::out | ios::binary);
         for(int i=0;i<(1<<globalDepth);i++){
@@ -219,12 +218,12 @@ public:
         fstream index(indexFile,ios::out | ios::in | ios::binary);
         fstream data(hashFile,ios::out | ios::in | ios::binary);
         if (!data || !index) return false;
-        int key = record.getKey() % (1<<globalDepth);
-        vector<typeRecord> searchKey = search(key);
+        vector<typeRecord> searchKey = search(record.getKey());
         if(!searchKey.empty()) {
             cerr << "Ya existe la key insertada\n";
             return false;
         }
+        int key = record.getKey() % (1<<globalDepth);
         index.seekg(key * sizeIndex());
         indexDepth temp;
         index >> temp;
@@ -376,7 +375,7 @@ public:
                     data.seekg(nxtPos * sizeBucket<typeRecord>());
                     data >> tempBucket;
                     for (int i = 0; i < tempBucket.size; i++) {
-                        cout << tempBucket.records[i].print();
+                        tempBucket.records[i].print();
                     }
                     nxtPos = tempBucket.nextPosition;
                 }
