@@ -67,6 +67,202 @@ class sequentialFile
     int m_max_aux_size;
 
 public:
+    constexpr static uint64_t header_size =
+        sizeof(IndexRecord<Key>::next_file) + sizeof(IndexRecord<Key>::next_position);
+
+    enum class IndexLocation
+    {
+        data,
+        aux
+    };
+
+    class Iterator
+    {
+        friend IndexLocation;
+
+        using iterator_category = std::bidirectional_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using reference = IndexRecord<Key> const&;
+        using pointer = IndexRecord<Key> const*;
+
+    private:
+        mutable std::ifstream m_data_file;
+        mutable std::ifstream m_aux_file;
+
+        std::filesystem::path m_data_filename;
+        std::filesystem::path m_aux_filename;
+
+        uint64_t m_index;
+        IndexLocation m_index_location;
+
+        uint64_t m_record_size;
+
+        mutable std::optional<IndexRecord<Key>> m_value_read;
+        bool m_end = false;
+
+        Iterator(
+            std::filesystem::path data_filename,
+            std::filesystem::path aux_filename,
+            uint64_t file_index,
+            IndexLocation index_location,
+            uint64_t record_size)
+            : m_data_file(data_filename, std::ios::in | std::ios::binary),
+              m_aux_file(aux_filename, std::ios::in | std::ios::binary),
+              m_data_filename(data_filename),
+              m_aux_filename(aux_filename),
+              m_index(file_index),
+              m_index_location(index_location),
+              m_record_size(record_size)
+        {
+            m_data_file.exceptions(std::ios::failbit);
+            m_aux_file.exceptions(std::ios::failbit);
+
+            // Make sure we start with the first valid tuple
+            this->advance_until_next_valid();
+        }
+
+        Iterator(Iterator const& it)
+            : Iterator{
+                it.m_data_filename,
+                it.m_aux_filename,
+                it.m_index,
+                it.m_index_location,
+                it.m_record_size}
+        {
+            m_end = it.m_end;
+        }
+
+        uint64_t calculate_offset(uint64_t index, IndexLocation index_location) const
+        {
+            if (index_location == IndexLocation::data)
+            {
+                return header_size + index * m_record_size;
+            }
+            else if (index_location == IndexLocation::aux)
+            {
+                return index * m_record_size;
+            }
+
+            throw std::runtime_error("???");
+        }
+
+        auto operator*() const -> reference
+        {
+            if (m_end)
+            {
+                throw std::runtime_error("Dereferencing iterator past end.");
+            }
+
+            if (!m_value_read.has_value())
+            {
+                IndexRecord<Key> temp;
+
+                if (m_index_location == IndexLocation::data)
+                {
+                    m_data_file.seekg(
+                        calculate_offset(m_index, m_index_location), std::ios::beg);
+                    m_data_file >> temp;
+                }
+                else if (m_index_location == IndexLocation::aux)
+                {
+                    m_aux_file.seekg(
+                        calculate_offset(m_index, m_index_location), std::ios::beg);
+                    m_aux_file >> temp;
+                }
+                else
+                {
+                    throw std::runtime_error("???");
+                }
+
+                m_value_read.emplace(temp);
+            }
+
+            return m_value_read.value();
+        }
+
+        auto operator->() const -> pointer
+        {
+            return std::addressof(**this);
+        }
+
+        void advance()
+        {
+            IndexRecord<Key> temp = **this;
+
+            m_index = temp.next_position;
+            m_index_location = temp.next_file;
+
+            m_value_read.reset();
+        }
+
+        auto operator++() -> Iterator&
+        {
+            if (m_end)
+            {
+                return *this;
+            }
+
+            m_value_read.reset();
+
+            IndexRecord<Key> temp = *this;
+
+            this->advance();
+            this->advance_until_next_valid();
+
+            return *this;
+        }
+
+        auto operator++(int) -> Iterator
+        {
+            Iterator it{*this};
+            ++it;
+            return it;
+        }
+
+        auto operator==(Iterator const& other) -> bool
+        {
+            if (this->m_data_filename != other.m_data_filename
+                || this->m_aux_filename != other.m_aux_filename)
+            {
+                return false;
+            }
+
+            if (this->m_end == true || other.m_end == true)
+            {
+                return this->m_end == other.m_end;
+            }
+
+            return this->m_file_offset == other.m_file_offset
+                   && this->m_index_location == other.m_index_location;
+        }
+
+        auto operator!=(Iterator const& other) -> bool
+        {
+            return !(*this == other);
+        }
+
+        void advance_until_next_valid()
+        {
+            while (true)
+            {
+                if (m_index == -1)
+                {
+                    m_end = true;
+                    return;
+                }
+
+                IndexRecord<Key> ir = **this;
+
+                if (ir.deleted != 1)
+                {
+                    return;
+                }
+
+                this->advance();
+            }
+        }
+    };
+
     explicit sequentialFile(std::string data_file, std::string aux_file, int max_aux_size)
         : m_data_file(std::move(data_file)),
           m_aux_file(std::move(aux_file)),
