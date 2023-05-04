@@ -1,10 +1,4 @@
-//
-// Created by VIRGINIA on 22/04/2023.
-//
-
-#ifndef PROYECTO_1_BD2_SEQUENTIALFILE_H
-#define PROYECTO_1_BD2_SEQUENTIALFILE_H
-
+#pragma once
 
 #include <iostream>
 #include <utility>
@@ -499,6 +493,3 @@ public:
         return sizeof(fixedRecord<typeRecord,typeKey>);
     }
 };
-
-
-#endif //PROYECTO_1_BD2_SEQUENTIALFILE_H
