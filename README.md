@@ -96,7 +96,7 @@ del sufijo a ser tomado para saber la id del bucket.
 
 ### Insert
 
-En esta función primero se raliza la función hash que en nuestro caso es módulo 
+En esta función primero se realiza la función hash que en nuestro caso es módulo 
 y se verifica en el indexFile de acuerdo a su valor cual es el tamaño del sufijo
 a tomar para la id del Bucket, luego se encuentra el Bucket en el archivo
 hashFile, a partir de esto tenemos 2 casos. El primero es cuando hay espacio en el
@@ -118,7 +118,9 @@ Esta función permite buscar registros en Extendible Hashing. Primero, se calcul
 
 ### Remove
 
+Esta funcion permite eliminar registros en Extendible Hashing. Primero, se calcula el valor del indexKey y se busca la entrada correspondiente en el archivo índice y se obtiene la clave hash de los últimos lenLast bits. Luego, se accede al bucket en el archivo de datos y se verifica que la key exista. Si eso ocurre, eliminamos el registro el cual estaba en esa posicion y decrementamos el tamaño del bucket en 1. Después, procedemos a hacer la escritura en los archivos. La función tambien busca en los buckets siguientes si hay encadenamiento.
 
+`Complejidad: O(n)`
 
 ## Resultados
 
