@@ -2,6 +2,7 @@
 #include <experimental/filesystem>
 #include <filesystem>
 #include <fstream>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -55,7 +56,12 @@ DataBase::DataBase(std::string name)
                 throw std::runtime_error("Relation " + name + " repeated in information file.");
             }
 
-            std::string primary_key = j_def["pk"].get<std::string>();
+            std::optional<std::string> primary_key;
+            auto pk_it = j_def.find("pk");
+            if (pk_it != j_def.end())
+            {
+                primary_key = pk_it->get<std::string>();
+            }
 
             std::vector<Attribute> attributes;
             for (auto const& [a_name, a_type] :
