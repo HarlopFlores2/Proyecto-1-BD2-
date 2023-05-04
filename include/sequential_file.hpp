@@ -74,39 +74,39 @@ public:
 
     int count_deleted()
     {
-        fstream data(m_data_file, ios::in | ios::binary);
-        fstream aux(m_aux_file, ios::in | ios::binary);
-
         int count = 0;
-
         IndexRecord<Key> rec;
 
+        fstream data(m_data_file, ios::in | ios::binary);
         data.seekg(0, ios::end);
 
-        int pos = 0;
-        int cant = data.tellg() / sizeRecord();
+        int data_n_records = data.tellg() / sizeRecord();
 
-        while (pos <= cant)
+        for (int pos = 0; pos < data_n_records; ++pos)
         {
             data.seekg(pos * sizeRecord());
             data >> rec;
 
             if (rec.deleted)
-                count++;
-
-            pos++;
+            {
+                ++count;
+            }
         }
 
+        fstream aux(m_aux_file, ios::in | ios::binary);
         aux.seekg(0, ios::end);
-        pos = 0, cant = aux.tellg() / sizeRecord();
 
-        while (pos <= cant)
+        int aux_n_records = aux.tellg() / sizeRecord();
+
+        for (int pos = 0; pos < aux_n_records; ++pos)
         {
             aux.seekg(pos * sizeRecord());
             aux >> rec;
+
             if (rec.deleted)
+            {
                 count++;
-            pos++;
+            }
         }
 
         return count;
