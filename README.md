@@ -112,6 +112,10 @@ de todo el archivo HashFile.
 
 ### Search
 
+Esta función permite buscar registros en Extendible Hashing. Primero, se calcula el valor de **indexKey**, se busca la entrada correspondiente en el archivo índice y se obtiene la clave hash de los últimos **lenLast** bits. Luego, se accede al bucket en el archivo de datos, y se crea un vector **result** para almacenar los registros que coincidan con la llave. La función busca dentro del bucket y en los siguientes si hay encadenamiento.
+
+`Complejidad: O(log n + k)`
+
 ### Remove
 
 
