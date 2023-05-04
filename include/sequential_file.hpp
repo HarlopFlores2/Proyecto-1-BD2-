@@ -65,8 +65,10 @@ class sequentialFile
     int m_max_aux_size;
 
 public:
-    explicit sequentialFile(std::string data_file, int maxAuxSize)
-        : m_max_aux_size(maxAuxSize){};
+    explicit sequentialFile(std::string data_file, std::string aux_file, int max_aux_size)
+        : m_data_file(std::move(data_file)),
+          m_aux_file(std::move(aux_file)),
+          m_max_aux_size(max_aux_size){};
 
     int countD(char const* d, char const* a)
     {
