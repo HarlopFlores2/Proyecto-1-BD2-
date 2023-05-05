@@ -89,6 +89,7 @@ template<typename typeRecord, typename typeKey>
 ostream &operator<<(ostream &stream, fixedRecord<typeRecord,typeKey> &p) {
     stream.write((char *) &p, sizeof(p));
     stream << flush;
+    countWrite++;
     return stream;
 }
 
@@ -96,6 +97,7 @@ ostream &operator<<(ostream &stream, fixedRecord<typeRecord,typeKey> &p) {
 template<typename typeRecord, typename typeKey>
 istream &operator>>(istream &stream, fixedRecord<typeRecord,typeKey> &p) {
     stream.read((char *) &p, sizeof(p));
+    countRead++;
     return stream;
 }
 
@@ -263,9 +265,9 @@ public:
         if (sizeAux == maxAuxSize) {
             merge_data();
             data.close();
-            remove("..//dataFile.dat");
+            remove("../dataFile.dat");
             data2.close();
-            rename("..//dataFile2.dat", "..//dataFile.dat");
+            rename("../dataFile2.dat", "../dataFile.dat");
             ofstream auxTemp;
             auxTemp.open(auxFile, ios::out | ios::trunc);
             auxTemp.close();

@@ -124,26 +124,51 @@ Esta funcion permite eliminar registros en Extendible Hashing. Primero, se calcu
 
 ## Resultados
 
-Para la realización de experimentos, se creó datasets de tamaño 100, 1k, y 10k. Los cuales están guardados en un archivo .csv
+Para la realización de experimentos, se creó datasets de tamaño 1000, 5000 y 10000. Los cuales están guardados en un archivo .csv
+Asimismo, se realizo 5 operaciones para la inserción y la búsqueda.
 
 ### Tiempo de ejecución
 
-<Image>
+Para la insercion del Sequential File se ejecuto 5 veces y se obtuvo el promedio de este, por cada dataset. Dando como resultado la siguiente gráfica.
+
+![Grafico 1](images\Chart1.png)
 
 Dataset | Tiempo (ms)
 ------------ | -------------
-100 | 6
-1k | 9
-10k | 3
+1000 | 22.8
+5000 | 23.6
+10000 | 45.2
 
+Para la búsqueda del Sequential File se ejecuto 5 veces y se obtuvo el promedio de este, por cada dataset. Dando como resultado la siguiente gráfica.
+
+![Grafico 2](images\Chart2.png)
+
+Dataset | Tiempo (ms)
+------------ | -------------
+1000 | 3.6
+5000 | 3.8
+10000 | 4.4
 
 ### Accesos a memoria secundaria
 
-<Image>
+Durante las pruebas, también se obtuvo la cantidad de accesos a disco. Asimismo, esto fue ejecutado en los diferentes datasets creados.
+Para la inserción se obtuvo la siguiente gráfica.
+
+![Grafico 3](images\Chart3.png)
 
 Dataset | Total de accesos
 ------------ | -------------
-100 | 10
-1k | 12
-10k | 16
+1000 | 66
+5000 | 84
+10000 | 89
+
+De la misma manera, la búsqueda obtuvo la siguiente gráfica.
+
+![Grafico 4](images\Chart4.png)
+
+Dataset | Total de accesos
+------------ | -------------
+1000 | 54
+5000 | 67
+10000 | 72
 
