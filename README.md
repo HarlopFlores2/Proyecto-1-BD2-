@@ -131,7 +131,7 @@ Asimismo, se realizo 5 operaciones para la inserción y la búsqueda.
 
 Para la insercion del Sequential File se ejecuto 5 veces y se obtuvo el promedio de este, por cada dataset. Dando como resultado la siguiente gráfica.
 
-![Grafico 1](images\Chart1.png)
+![Grafico 1](images/Chart1.png)
 
 Dataset | Tiempo (ms)
 ------------ | -------------
@@ -141,7 +141,7 @@ Dataset | Tiempo (ms)
 
 Para la búsqueda del Sequential File se ejecuto 5 veces y se obtuvo el promedio de este, por cada dataset. Dando como resultado la siguiente gráfica.
 
-![Grafico 2](images\Chart2.png)
+![Grafico 2](images/Chart2.png)
 
 Dataset | Tiempo (ms)
 ------------ | -------------
@@ -154,7 +154,7 @@ Dataset | Tiempo (ms)
 Durante las pruebas, también se obtuvo la cantidad de accesos a disco. Asimismo, esto fue ejecutado en los diferentes datasets creados.
 Para la inserción se obtuvo la siguiente gráfica.
 
-![Grafico 3](images\Chart3.png)
+![Grafico 3](images/Chart3.png)
 
 Dataset | Total de accesos
 ------------ | -------------
@@ -164,7 +164,7 @@ Dataset | Total de accesos
 
 De la misma manera, la búsqueda obtuvo la siguiente gráfica.
 
-![Grafico 4](images\Chart4.png)
+![Grafico 4](images/Chart4.png)
 
 Dataset | Total de accesos
 ------------ | -------------
