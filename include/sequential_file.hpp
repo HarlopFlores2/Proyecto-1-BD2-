@@ -1,13 +1,21 @@
 #pragma once
 
+#include <algorithm>
+#include <cmath>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
 #include <fstream>
+#include <ios>
 #include <iostream>
+#include <iterator>
+#include <limits>
 #include <optional>
 #include <ostream>
+#include <stdexcept>
 #include <string>
 #include <unistd.h>
 #include <utility>
