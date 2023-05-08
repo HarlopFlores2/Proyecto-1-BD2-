@@ -789,17 +789,6 @@ public:
         cout << pos << endl;
     }
 
-    void readRecordData(int pos)
-    {
-        // read record from dataFile
-        fstream data(m_data_file, ios::in | ios::binary);
-        data.seekg(pos * sizeRecord());
-        IndexRecord<Key> record;
-        data >> record;
-        data.close();
-        record.print();
-    }
-
     std::optional<Iterator> findLocationToAdd(int key)
     {
         /*
