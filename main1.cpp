@@ -10,16 +10,10 @@ int main(){
     fixedRecord1.load(f1);
     extendibleHash<Record> ExtendibleHash;
 
-    unsigned t0, t1;
+    ExtendibleHash.load("../pruebaHash100.csv");
 
-    t0=clock();
-    ExtendibleHash.load("pruebaHash500.csv");
-    t1 = clock();
 
-    double long time = ((double long)(t1-t0)/CLOCKS_PER_SEC);
-    cout << "Execution Time: " << time << endl;
-
-    //ExtendibleHash.printAllBuckets();
+    ExtendibleHash.printAllBuckets();
     /*
     //Prueba de la funcion search
     int searchKey = 6;

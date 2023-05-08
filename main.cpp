@@ -1,22 +1,30 @@
 #include "sequentialFile.h"
-#include<ctime>
+#include "extendibleHash.h"
+#include <SFML/Window.hpp>
+#include <SFML/Graphics.hpp>
+#include <SFML/Audio.hpp>
 
-int main(){
-    vector<string> f1 = {"1", "2", "3", "4", "5", "6", "7", "8"};
-    fixedRecord<Record, int> fixedRecord1;
-    fixedRecord1.load(f1);
-    sequentialFile<Record, int> SequentialFile(2);
 
-    //Prueba 1 - limpiar campos en data y aux
-    SequentialFile.load_data("../file_out.csv");
+int main()
+{
+    sf::RenderWindow window(sf::VideoMode(640, 480), "SFML Application");
+    sf::CircleShape shape;
+    shape.setRadius(40.f);
+    shape.setPosition(100.f, 100.f);
+    shape.setFillColor(sf::Color::Cyan);
 
-    unsigned t0, t1;
+    while (window.isOpen())
+    {
+        sf::Event event;
 
-    t0=clock();
-    vector<fixedRecord<Record,int>> v = SequentialFile.search(5022);
-    t1 = clock();
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed)
+                window.close();
+        }
 
-    double long time = ((double long)(t1-t0)/CLOCKS_PER_SEC);
-    cout << "Execution Time: " << time << endl;
-
+        window.clear();
+        window.draw(shape);
+        window.display();
+    }
 }

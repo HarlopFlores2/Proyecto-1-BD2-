@@ -17,6 +17,7 @@
 #include <cstdlib>
 #include <unistd.h>
 #include "rapidcsv.h"
+#include "Record.h"
 
 using namespace std;
 
@@ -29,38 +30,6 @@ void readFromConsole(char buffer[], int size) {
     cin.clear();
 }
 
-
-struct Record {
-    int line;
-    int documentID;
-    char date[11];
-    int productID;
-    float price;
-    float discount;
-    int customer;
-    int quantity;
-    
-    void load(vector<string> data){
-        line = stoi(data[0]);
-        documentID = stoi(data[1]);
-        strcpy(date, data[2].c_str());
-        productID = stoi(data[3]);
-        price = stof(data[4]);
-        discount = stof(data[5]);
-        customer = stoi(data[6]);
-        quantity = stoi(data[7]);
-    }
-    int getKey() {return documentID;}
-    void print(){
-        cout << "documentID: " << documentID << endl;
-        cout << "date: " << date << endl;
-        cout << "productID: " << productID << endl;
-        cout << "price: " << price << endl;
-        cout << "discount: " << discount << endl;
-        cout << "customer: " << customer << endl;
-        cout << "quantity: " << quantity << endl;
-    }
-};
 
 
 template<typename typeRecord, typename typeKey>
