@@ -387,6 +387,8 @@ public:
                     return;
                 }
 
+                throw std::runtime_error("This shouldn't happen");
+
                 this->advance();
             }
         }
