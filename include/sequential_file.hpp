@@ -335,8 +335,6 @@ public:
 
             m_value_read.reset();
 
-            IndexRecord<Key> temp = *this;
-
             this->advance();
             this->advance_until_next_valid();
 
