@@ -26,7 +26,8 @@ using namespace std;
 enum class IndexLocation
 {
     data,
-    aux
+    aux,
+    no_next
 };
 
 template<typename Key>
@@ -375,7 +376,7 @@ public:
         {
             while (true)
             {
-                if (m_index == -1)
+                if (m_index_location == IndexLocation::no_next)
                 {
                     m_end = true;
                     return;
