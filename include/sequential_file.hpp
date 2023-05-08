@@ -751,55 +751,38 @@ public:
 
     void merge_data()
     {
-        fstream data(m_data_file, ios::in | ios::binary);
-        fstream aux(m_aux_file, ios::in | ios::binary);
-        fstream data2("../dataFile2.dat", ios::out | ios::binary);
-        if (!data || !aux)
-            return;
-        IndexRecord<Key> header, temp;
-        data.seekg(0, ios::end);
+        std::filesystem::path new_data_filename = m_data_filename;
+        new_data_filename += ".new";
+        fstream new_data_file(new_data_filename, ios::out | ios::binary);
 
-        int newSize = m_max_aux_size + (data.tellg() / sizeRecord());
-        int countDeleted = count_deleted(m_data_file, m_aux_file);
-        cout << countDeleted << '\n';
-        newSize -= countDeleted;
-        data.seekg(0);
-        data >> header;
-        cout << header.nextPosition << " " << header.nextFile << endl;
-        temp.nextPosition = header.nextPosition;
-        temp.nextFile = header.nextFile;
-        data2.seekp(0);
-        data2 << header;
-        int pos = 1;
-        cout << temp.nextPosition << " " << temp.nextFile << endl;
-        while (temp.nextPosition != -1 and temp.nextFile != -1)
+        IndexLocation next_location = IndexLocation::data;
+        uint64_t next_position = 0;
+
+        new_data_file.write(
+            reinterpret_cast<char const*>(&next_location), sizeof(next_location));
+        new_data_file.write(
+            reinterpret_cast<char const*>(&next_position), sizeof(next_position));
+
+        bool written_one = false;
+
+        for (IndexRecord<Key> const& ir : *this)
         {
-            IndexRecord<Key> curr;
-            if (temp.nextFile == 0)
-            {
-                data.seekg(temp.nextPosition * sizeRecord());
-                data >> curr;
-                IndexRecord<Key> curr1 = curr;
-                curr1.nextPosition = pos + 1 < newSize ? pos + 1 : -1;
-                curr1.nextFile = pos + 1 < newSize ? 0 : -1;
-                data2.seekp(pos * sizeRecord());
-                data2 << curr1;
-            }
-            else if (temp.nextFile == 1)
-            {
-                aux.seekg(temp.nextPosition * sizeRecord());
-                aux >> curr;
-                IndexRecord<Key> curr1 = curr;
-                curr1.nextPosition = pos + 1 < newSize ? pos + 1 : -1;
-                curr1.nextFile = pos + 1 < newSize ? 0 : -1;
-                data2.seekp(pos * sizeRecord());
-                data2 << curr1;
-            }
-            temp.nextFile = curr.nextFile;
-            temp.nextPosition = curr.nextPosition;
-            pos++;
+            written_one = true;
+            new_data_file << ir;
         }
-        cout << pos << endl;
+
+        m_data_file.close();
+        new_data_file.close();
+
+        std::filesystem::rename(new_data_filename, m_data_filename);
+        m_data_file.open(m_data_filename, std::ios::in | std::ios::out | std::ios::binary);
+
+        std::filesystem::resize_file(m_aux_filename, 0);
+
+        if (!written_one)
+        {
+            set_header(IndexLocation::no_next, 0);
+        }
     }
 
     std::optional<Iterator> findLocationToAdd(int key)
