@@ -414,6 +414,18 @@ public:
         {
             throw std::runtime_error("max_aux_size must be larger than 1");
         }
+
+        // Initialize data file if needed
+        m_data_file.seekg(0, std::ios::end);
+        if (m_data_file.tellg() == 0)
+        {
+            IndexLocation index_location = IndexLocation::no_next;
+            m_data_file.write(
+                reinterpret_cast<char const*>(&index_location), sizeof(index_location));
+            uint64_t next_position = 0;
+            m_data_file.write(
+                reinterpret_cast<char const*>(&next_position), sizeof(next_position));
+        }
     };
 
     int count_deleted()
