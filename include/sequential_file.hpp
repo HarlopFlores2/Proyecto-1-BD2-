@@ -204,6 +204,8 @@ public:
         }
     };
 
+    using reverse_raw_iterator = std::reverse_iterator<RawIterator>;
+
     class Iterator
     {
         friend IndexLocation;
