@@ -894,6 +894,15 @@ public:
         return {index_location, next_position};
     }
 
+    void set_header(IndexLocation index_location, uint64_t next_position) const
+    {
+        m_data_file.seekp(0, std::ios::beg);
+
+        m_data_file.write(
+            reinterpret_cast<char const*>(&index_location), sizeof(index_location));
+        m_data_file.write(reinterpret_cast<char const*>(&next_position), sizeof(next_position));
+    }
+
     int sizeRecord()
     {
         return sizeof(IndexRecord<Key>);
