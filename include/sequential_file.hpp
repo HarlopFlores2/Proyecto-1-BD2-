@@ -869,6 +869,19 @@ public:
         record.print();
     }
 
+    std::pair<IndexLocation, uint64_t> get_header() const
+    {
+        m_data_file.seekg(0, std::ios::beg);
+
+        IndexLocation index_location{};
+        m_data_file.read(reinterpret_cast<char*>(&index_location), sizeof(index_location));
+
+        uint64_t next_position = 0;
+        m_data_file.read(reinterpret_cast<char*>(&next_position), sizeof(next_position));
+
+        return {index_location, next_position};
+    }
+
     int sizeRecord()
     {
         return sizeof(IndexRecord<Key>);
