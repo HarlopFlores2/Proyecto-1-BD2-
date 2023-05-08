@@ -428,6 +428,19 @@ public:
         }
     };
 
+    Iterator begin() const
+    {
+        auto [next_location, next_position] = get_header();
+        return Iterator(
+            m_data_filename, m_aux_filename, next_position, next_location, sizeRecord());
+    }
+
+    Iterator end() const
+    {
+        return Iterator(
+            m_data_filename, m_aux_filename, 0, IndexLocation::no_next, sizeRecord());
+    }
+
     int count_deleted()
     {
         int count = 0;
