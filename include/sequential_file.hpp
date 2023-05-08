@@ -27,9 +27,9 @@ struct IndexRecord
     Key key;
     uint64_t relation_index;
 
-    int next_file = 0;
-    long next_position = -1;
-    int deleted = 0;
+    IndexLocation next_file;
+    uint64_t next_position = std::numeric_limits<uint64_t>::max();
+    bool deleted = false;
 
     void print(std::ostream& out = std::cerr)
     {
