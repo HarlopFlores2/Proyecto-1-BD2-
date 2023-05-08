@@ -800,75 +800,85 @@ public:
         record.print();
     }
 
-    pair<int, int> findLocation(int key)
+    std::optional<Iterator> findLocationToAdd(int key)
     {
-        fstream data(m_data_file, ios::in | ios::binary);
-        fstream aux(m_aux_file, ios::in | ios::binary);
-        if (!data || !aux)
-            return {-1, -1};
+        /*
+        ** Returns the last *active* location with a value less than key.
+        */
+
+        fstream data_file(m_data_filename, ios::in | ios::binary);
+
+        if (!data_file)
+        {
+            throw std::runtime_error("Data file couldn't be opened.");
+        }
+
         IndexRecord<Key> temp;
-        data.seekg(0, ios::end);
-        long sizeData = data.tellg();
+
+        data_file.seekg(0, ios::end);
+        long n_records = data_file.tellg() / sizeRecord();
+
         long l = 0;
-        long r = (sizeData / sizeRecord()) - 1;
+        long r = n_records - 1;
+
         long index = -1;
         long file = -1;
-        while (l <= r)
+
+        reverse_raw_iterator r_end(RawIterator(m_data_filename, 0, sizeRecord()));
+        reverse_raw_iterator r_begin(RawIterator(m_data_filename, n_records, sizeRecord()));
+
+        reverse_raw_iterator r_it = std::upper_bound(
+            r_begin, r_end, [=](IndexRecord<Key> ir) -> bool { return ir.key < key; });
+
+        while (r_it != r_end)
         {
-            long m = l + (r - l) / 2;
-            data.seekg(m * sizeRecord());
-            data >> temp;
-            if (temp.key == key)
+            if (r_it->deleted == 0)
             {
-                if (!temp.deleted)
+                Iterator it(
+                    m_data_filename,
+                    m_aux_filename,
+                    r_it.base().m_index,
+                    IndexLocation::data,
+                    sizeRecord());
+                Iterator it_next(it);
+                ++it_next;
+
+                while (it_next != this->end() && it_next->key < key)
                 {
-                    file = 0;
-                    index = m;
+                    ++it;
+                    ++it_next;
                 }
+                return {it};
             }
-            if (temp.key < key)
-                l = m + 1;
-            else
-                r = m - 1;
+
+            ++r_it;
         }
-        if (index != -1)
-            return {file, index};
-        else
+
+        auto [next_location, next_position] = get_header();
+
+        if (next_location != IndexLocation::aux)
         {
-            file = 0;
-            index = max(0l, l - 1);
+            return {};
         }
-        if (temp.nextFile == 0)
-            return {file, index};
-        if (temp.nextFile == 1)
+
+        Iterator it(
+            m_data_filename, m_aux_filename, next_position, IndexLocation::aux, sizeRecord());
+
+        if (!(it->key < key))
         {
-            int nextFile = temp.nextFile;
-            int nextPosition = temp.nextPosition;
-            while (nextFile == 1)
-            {
-                IndexRecord<Key> tempAux;
-                aux.seekg(nextPosition * sizeRecord());
-                aux >> tempAux;
-                if (tempAux.key > key)
-                {
-                    break;
-                }
-                else if (tempAux.key == key)
-                {
-                    file = 1;
-                    index = nextPosition;
-                    break;
-                }
-                else
-                {
-                    index = nextPosition;
-                    file = 1;
-                    nextPosition = tempAux.nextPosition;
-                    nextFile = tempAux.nextFile;
-                }
-            }
+            return {};
         }
-        return {file, index};
+
+        Iterator it_next = it;
+        ++it_next;
+
+        while (it_next != this->end() && it_next->key < key)
+        {
+            ++it;
+            ++it_next;
+        }
+
+        return {it};
     }
 
     std::pair<IndexLocation, uint64_t> get_header() const
