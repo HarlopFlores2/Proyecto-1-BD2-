@@ -871,16 +871,6 @@ public:
         return {file, index};
     }
 
-    void readRecordAux(int pos)
-    {
-        fstream aux(m_aux_file, ios::in | ios::binary);
-        aux.seekg(pos * sizeRecord());
-        IndexRecord<Key> record;
-        aux >> record;
-        aux.close();
-        record.print();
-    }
-
     std::pair<IndexLocation, uint64_t> get_header() const
     {
         m_data_file.seekg(0, std::ios::beg);
