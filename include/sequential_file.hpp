@@ -785,7 +785,7 @@ public:
         }
     }
 
-    std::optional<Iterator> findLocationToAdd(int key)
+    std::optional<Iterator> findLocationToAdd(Key const& key)
     {
         /*
         ** Returns the last *active* location with a value less than key.
