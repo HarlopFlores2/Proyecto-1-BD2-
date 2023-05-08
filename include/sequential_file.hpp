@@ -62,9 +62,13 @@ istream& operator>>(istream& in, IndexRecord<Key>& p)
 template<typename Key>
 class sequentialFile
 {
-    std::string m_data_file;
-    std::string m_aux_file;
-    int m_max_aux_size;
+    std::filesystem::path m_data_filename;
+    std::filesystem::path m_aux_filename;
+
+    mutable std::fstream m_data_file;
+    mutable std::fstream m_aux_file;
+
+    uint64_t m_max_aux_size;
 
 public:
     constexpr static uint64_t header_size =
@@ -379,11 +383,22 @@ public:
         }
     };
 
-    explicit sequentialFile(std::string data_file, std::string aux_file, int max_aux_size)
-        : m_data_file(std::move(data_file)),
-          m_aux_file(std::move(aux_file)),
+    explicit sequentialFile(
+        std::filesystem::path data_filename,
+        std::filesystem::path aux_filename,
+        uint64_t max_aux_size)
+        : m_data_filename(std::move(data_filename)),
+          m_aux_filename(std::move(aux_filename)),
           m_max_aux_size(max_aux_size)
     {
+        std::ofstream(m_data_filename, std::ios::app | std::ios::binary);
+        m_data_file.open(m_data_filename, std::ios::in | std::ios::out | std::ios::binary);
+        m_data_file.exceptions(std::ios::failbit);
+
+        std::ofstream(m_aux_filename, std::ios::app | std::ios::binary);
+        m_aux_file.open(m_aux_filename, std::ios::in | std::ios::out | std::ios::binary);
+        m_aux_file.exceptions(std::ios::failbit);
+
         if (m_max_aux_size < 1)
         {
             throw std::runtime_error("max_aux_size must be larger than 1");
