@@ -15,6 +15,12 @@
 
 using namespace std;
 
+enum class IndexLocation
+{
+    data,
+    aux
+};
+
 template<typename Key>
 struct IndexRecord
 {
@@ -73,12 +79,6 @@ class sequentialFile
 public:
     constexpr static uint64_t header_size =
         sizeof(IndexRecord<Key>::next_file) + sizeof(IndexRecord<Key>::next_position);
-
-    enum class IndexLocation
-    {
-        data,
-        aux
-    };
 
     class RawIterator
     {
