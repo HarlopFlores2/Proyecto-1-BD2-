@@ -76,6 +76,122 @@ public:
         aux
     };
 
+    class RawIterator
+    {
+        using iterator_category = std::bidirectional_iterator_tag;
+        using value_type = IndexRecord<Key>;
+        using difference_type = std::ptrdiff_t;
+        using reference = IndexRecord<Key> const&;
+        using pointer = IndexRecord<Key> const*;
+
+    private:
+        std::filesystem::path m_filename;
+        mutable std::ifstream m_file;
+        uint64_t m_index;
+
+        uint64_t m_record_size;
+
+        mutable std::optional<IndexRecord<Key>> m_value_read;
+
+        RawIterator(std::filesystem::path filename, uint64_t index, uint64_t record_size)
+            : m_filename(filename),
+              m_file(m_filename, std::ios::in | std::ios::binary),
+              m_index(index),
+              m_record_size(record_size)
+        {
+            m_file.exceptions(std::ios::failbit);
+        }
+
+        RawIterator(RawIterator const& it)
+            : RawIterator{it.m_filename, it.m_index, it.m_record_size}
+        {
+        }
+
+        uint64_t calculate_offset(uint64_t index) const
+        {
+            return header_size + index * m_record_size;
+        }
+
+        auto operator*() const -> reference
+        {
+            if (!m_value_read.has_value())
+            {
+                IndexRecord<Key> temp;
+                m_file.seekg(calculate_offset(m_index), std::ios::beg);
+                m_file >> temp;
+                m_value_read.emplace(temp);
+            }
+
+            return m_value_read.value();
+        }
+
+        auto operator->() const -> pointer
+        {
+            return std::addressof(**this);
+        }
+
+        auto operator+=(difference_type n) -> RawIterator&
+        {
+            m_value_read.reset();
+            m_index += n;
+            return *this;
+        }
+
+        auto operator+(difference_type n)
+        {
+            RawIterator ret(*this);
+            ret += n;
+            return ret;
+        }
+
+        auto operator-=(difference_type n) -> RawIterator&
+        {
+            (*this) += -n;
+            return *this;
+        }
+
+        auto operator-(difference_type n)
+        {
+            RawIterator ret(*this);
+            ret -= n;
+            return ret;
+        }
+
+        auto operator-(RawIterator const& other)
+        {
+            return m_index - other.m_index;
+        }
+
+        auto operator++() -> RawIterator&
+        {
+            (*this) += 1;
+
+            return *this;
+        }
+
+        auto operator++(int) -> RawIterator
+        {
+            RawIterator it{*this};
+            ++it;
+            return it;
+        }
+
+        auto operator==(RawIterator const& other) -> bool
+        {
+            if (this->m_filename != other.m_filename)
+            {
+                return false;
+            }
+
+            return this->m_index == other.m_index;
+        }
+
+        auto operator!=(RawIterator const& other) -> bool
+        {
+            return !(*this == other);
+        }
+    };
+
     class Iterator
     {
         friend IndexLocation;
