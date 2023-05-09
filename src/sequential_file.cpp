@@ -317,19 +317,18 @@ SequentialFile::SequentialFile(
 auto SequentialFile::begin() const -> Iterator
 {
     auto [next_location, next_position] = get_header();
-    return Iterator(
-        m_data_filename, m_aux_filename, next_position, next_location, sizeRecord());
+    return Iterator(m_data_filename, m_aux_filename, next_position, next_location, this);
 }
 
 auto SequentialFile::end() const -> Iterator
 {
-    return Iterator(m_data_filename, m_aux_filename, 0, IndexLocation::no_next, sizeRecord());
+    return Iterator(m_data_filename, m_aux_filename, 0, IndexLocation::no_next, this);
 }
 
 void SequentialFile::insert(nlohmann::json const& key, uint64_t relation_index)
 {
     m_aux_file.seekg(0, std::ios::end);
-    if (m_aux_file.tellg() / sizeRecord() >= m_max_aux_size)
+    if (m_aux_file.tellg() / m_record_size >= m_max_aux_size)
     {
         merge_data();
     }
@@ -354,7 +353,7 @@ void SequentialFile::insert(nlohmann::json const& key, uint64_t relation_index)
     }
 
     m_aux_file.seekp(0, std::ios::end);
-    uint64_t index_to_add = m_aux_file.tellp() / sizeRecord();
+    uint64_t index_to_add = m_aux_file.tellp() / m_record_size;
 
     m_aux_file << ir;
 
@@ -494,7 +493,7 @@ auto SequentialFile::find_location_to_add(nlohmann::json const& key) -> std::opt
     IndexRecord temp;
 
     data_file.seekg(0, ios::end);
-    long n_records = data_file.tellg() / sizeRecord();
+    long n_records = data_file.tellg() / m_record_size;
 
     long l = 0;
     long r = n_records - 1;
@@ -502,8 +501,8 @@ auto SequentialFile::find_location_to_add(nlohmann::json const& key) -> std::opt
     long index = -1;
     long file = -1;
 
-    reverse_raw_iterator r_end(RawIterator(m_data_filename, 0, sizeRecord()));
-    reverse_raw_iterator r_begin(RawIterator(m_data_filename, n_records, sizeRecord()));
+    reverse_raw_iterator r_end(RawIterator(m_data_filename, 0, this));
+    reverse_raw_iterator r_begin(RawIterator(m_data_filename, n_records, this));
 
     reverse_raw_iterator r_it =
         std::upper_bound(r_begin, r_end, [=](IndexRecord ir) -> bool { return ir.key < key; });
@@ -517,7 +516,7 @@ auto SequentialFile::find_location_to_add(nlohmann::json const& key) -> std::opt
                 m_aux_filename,
                 r_it.base().m_index,
                 IndexLocation::data,
-                sizeRecord());
+                this);
             Iterator it_next(it);
             ++it_next;
 
@@ -539,8 +538,7 @@ auto SequentialFile::find_location_to_add(nlohmann::json const& key) -> std::opt
         return {};
     }
 
-    Iterator it(
-        m_data_filename, m_aux_filename, next_position, IndexLocation::aux, sizeRecord());
+    Iterator it(m_data_filename, m_aux_filename, next_position, IndexLocation::aux, this);
 
     if (!(it->key < key))
     {
@@ -584,11 +582,11 @@ auto SequentialFile::calculate_offset(uint64_t index, IndexLocation index_locati
 {
     if (index_location == IndexLocation::data)
     {
-        return header_size + index * sizeRecord();
+        return header_size + index * m_record_size;
     }
     else if (index_location == IndexLocation::aux)
     {
-        return index * sizeRecord();
+        return index * m_record_size;
     }
 
     throw std::runtime_error("???");
@@ -599,12 +597,12 @@ void SequentialFile::write_record(
 {
     if (index_location == IndexLocation::data)
     {
-        m_data_file.seekp(header_size + index * sizeRecord());
+        m_data_file.seekp(header_size + index * m_record_size);
         m_data_file << record;
     }
     else if (index_location == IndexLocation::aux)
     {
-        m_aux_file.seekp(index * sizeRecord());
+        m_aux_file.seekp(index * m_record_size);
         m_aux_file << record;
     }
 
@@ -631,9 +629,4 @@ auto SequentialFile::read_record(std::istream& in) const -> IndexRecord
     in.read(reinterpret_cast<char*>(&ir.deleted), sizeof(ir.deleted));
 
     return ir;
-}
-
-auto SequentialFile::sizeRecord() -> int
-{
-    return sizeof(IndexRecord);
 }

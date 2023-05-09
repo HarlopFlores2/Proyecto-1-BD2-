@@ -176,6 +176,4 @@ public:
     write_record(IndexLocation index_location, uint64_t index, IndexRecord const& record) const;
     void write_record(IndexRecord const& ir, std::ostream& os) const;
     auto read_record(std::istream& in) const -> IndexRecord;
-
-    int sizeRecord();
 };
