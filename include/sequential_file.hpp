@@ -64,13 +64,14 @@ public:
 
     class RawIterator
     {
+    public:
         using iterator_category = std::bidirectional_iterator_tag;
         using value_type = IndexRecord;
         using difference_type = std::ptrdiff_t;
         using reference = IndexRecord const&;
         using pointer = IndexRecord const*;
 
-    private:
+    public:
         std::filesystem::path m_filename;
         mutable std::ifstream m_file;
         uint64_t m_index;
@@ -104,14 +105,13 @@ public:
 
     class Iterator
     {
-        friend IndexLocation;
-
+    public:
         using iterator_category = std::bidirectional_iterator_tag;
         using difference_type = std::ptrdiff_t;
         using reference = IndexRecord const&;
         using pointer = IndexRecord const*;
 
-    private:
+    public:
         mutable std::ifstream m_data_file;
         mutable std::ifstream m_aux_file;
 
