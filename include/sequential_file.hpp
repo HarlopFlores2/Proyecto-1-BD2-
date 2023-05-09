@@ -83,6 +83,8 @@ public:
         RawIterator(std::filesystem::path filename, uint64_t index, SequentialFile const* sf);
         RawIterator(RawIterator const& it);
 
+        auto operator=(RawIterator const& other) -> RawIterator&;
+
         auto calculate_offset(uint64_t index) const -> uint64_t;
 
         auto operator*() const -> reference;

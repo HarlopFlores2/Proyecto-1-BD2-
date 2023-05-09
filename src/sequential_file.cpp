@@ -40,6 +40,21 @@ SequentialFile::RawIterator::RawIterator(RawIterator const& it)
 {
 }
 
+auto SequentialFile::RawIterator::operator=(RawIterator const& other) -> RawIterator&
+{
+    m_filename = other.m_filename;
+    m_index = other.m_index;
+
+    m_value_read.reset();
+
+    m_sf = other.m_sf;
+
+    m_file.close();
+    m_file.open(m_filename, std::ios::in | std::ios::binary);
+
+    return *this;
+}
+
 uint64_t SequentialFile::RawIterator::calculate_offset(uint64_t index) const
 {
     return header_size + index * m_sf->m_record_size;
