@@ -441,20 +441,6 @@ public:
             m_data_filename, m_aux_filename, 0, IndexLocation::no_next, sizeRecord());
     }
 
-    void print_all(string file)
-    {
-        fstream filet(file, ios::in | ios::binary);
-        int pos = 0;
-        IndexRecord<Key> temp;
-        while (filet >> temp)
-        {
-            pos++;
-            filet.seekg(pos * sizeRecord());
-            temp.print();
-        }
-        cout << "*****************\n";
-    }
-
     vector<IndexRecord<Key>> search(int key)
     {
         // Crear un vector para almacenar los resultados
