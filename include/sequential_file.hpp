@@ -441,46 +441,6 @@ public:
             m_data_filename, m_aux_filename, 0, IndexLocation::no_next, sizeRecord());
     }
 
-    int count_deleted()
-    {
-        int count = 0;
-        IndexRecord<Key> rec;
-
-        fstream data(m_data_file, ios::in | ios::binary);
-        data.seekg(0, ios::end);
-
-        int data_n_records = data.tellg() / sizeRecord();
-
-        for (int pos = 0; pos < data_n_records; ++pos)
-        {
-            data.seekg(pos * sizeRecord());
-            data >> rec;
-
-            if (rec.deleted)
-            {
-                ++count;
-            }
-        }
-
-        fstream aux(m_aux_file, ios::in | ios::binary);
-        aux.seekg(0, ios::end);
-
-        int aux_n_records = aux.tellg() / sizeRecord();
-
-        for (int pos = 0; pos < aux_n_records; ++pos)
-        {
-            aux.seekg(pos * sizeRecord());
-            aux >> rec;
-
-            if (rec.deleted)
-            {
-                count++;
-            }
-        }
-
-        return count;
-    }
-
     void print_all(string file)
     {
         fstream filet(file, ios::in | ios::binary);
