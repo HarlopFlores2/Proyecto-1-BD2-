@@ -34,6 +34,7 @@ private:
         no_next
     };
 
+public:
     struct IndexRecord
     {
         nlohmann::json key;
@@ -47,6 +48,7 @@ private:
                                                      + sizeof(next_position) + sizeof(deleted);
     };
 
+private:
     std::filesystem::path m_data_filename;
     std::filesystem::path m_aux_filename;
 
