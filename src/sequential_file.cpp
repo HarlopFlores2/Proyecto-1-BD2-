@@ -617,6 +617,28 @@ void SequentialFile::write_record(
     throw std::runtime_error("???");
 }
 
+void SequentialFile::write_record(IndexRecord const& ir, std::ostream& os)
+{
+    m_key_attribute.write(os, ir.key);
+    os.write(reinterpret_cast<char const*>(&ir.relation_index), sizeof(ir.relation_index));
+    os.write(reinterpret_cast<char const*>(&ir.next_file), sizeof(ir.next_file));
+    os.write(reinterpret_cast<char const*>(&ir.next_position), sizeof(ir.next_position));
+    os.write(reinterpret_cast<char const*>(&ir.deleted), sizeof(ir.deleted));
+}
+
+auto SequentialFile::read_record(std::istream& in) -> IndexRecord
+{
+    IndexRecord ir;
+
+    ir.key = m_key_attribute.read(in);
+    in.read(reinterpret_cast<char*>(&ir.relation_index), sizeof(ir.relation_index));
+    in.read(reinterpret_cast<char*>(&ir.next_file), sizeof(ir.next_file));
+    in.read(reinterpret_cast<char*>(&ir.next_position), sizeof(ir.next_position));
+    in.read(reinterpret_cast<char*>(&ir.deleted), sizeof(ir.deleted));
+
+    return ir;
+}
+
 auto SequentialFile::sizeRecord() -> int
 {
     return sizeof(IndexRecord);

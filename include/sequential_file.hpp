@@ -169,5 +169,8 @@ public:
     uint64_t calculate_offset(uint64_t index, IndexLocation index_location);
 
     void write_record(IndexLocation index_location, uint64_t index, IndexRecord const& record);
+    void write_record(IndexRecord const& ir, std::ostream& os);
+    auto read_record(std::istream& in) -> IndexRecord;
+
     int sizeRecord();
 };
