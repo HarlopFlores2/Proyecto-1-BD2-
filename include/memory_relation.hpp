@@ -52,4 +52,6 @@ struct MemoryRelation : public Relation
     auto end() const -> Iterator;
 
     void insert(nlohmann::json tuple);
+
+    [[nodiscard]] auto read(uint64_t index) const -> nlohmann::json;
 };

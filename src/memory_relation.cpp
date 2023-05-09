@@ -116,3 +116,8 @@ void MemoryRelation::insert(nlohmann::json tuple)
 
     m_tuples.emplace_back(std::move(tuple));
 }
+
+auto MemoryRelation::read(uint64_t index) const -> nlohmann::json
+{
+    return m_tuples.at(index);
+}
