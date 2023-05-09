@@ -42,6 +42,11 @@ SequentialFile::RawIterator::RawIterator(RawIterator const& it)
 
 auto SequentialFile::RawIterator::operator=(RawIterator const& other) -> RawIterator&
 {
+    if (this == &other)
+    {
+        return *this;
+    }
+
     m_filename = other.m_filename;
     m_index = other.m_index;
 
@@ -180,6 +185,11 @@ SequentialFile::Iterator::Iterator(Iterator const& it)
 
 auto SequentialFile::Iterator::operator=(Iterator const& other) -> Iterator&
 {
+    if (this == &other)
+    {
+        return *this;
+    }
+
     m_data_filename = other.m_data_filename;
     m_aux_filename = other.m_aux_filename;
     m_index = other.m_index;
