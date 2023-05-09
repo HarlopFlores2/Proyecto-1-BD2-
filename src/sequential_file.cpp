@@ -567,18 +567,10 @@ auto SequentialFile::find_location_to_add(json const& key) -> std::optional<Iter
     /*
     ** Returns the last *active* location with a value less than key.
     */
-
-    std::fstream data_file(m_data_filename, std::ios::in | std::ios::binary);
-
-    if (!data_file)
-    {
-        throw std::runtime_error("Data file couldn't be opened.");
-    }
-
     IndexRecord temp;
 
-    data_file.seekg(0, std::ios::end);
-    long n_records = data_file.tellg() / m_record_size;
+    m_data_file.seekg(0, std::ios::end);
+    long n_records = m_data_file.tellg() / m_record_size;
 
     reverse_raw_iterator r_end(RawIterator(m_data_filename, 0, this));
     reverse_raw_iterator r_begin(RawIterator(m_data_filename, n_records, this));
