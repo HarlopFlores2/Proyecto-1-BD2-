@@ -266,8 +266,7 @@ auto SequentialFile::Iterator::operator==(Iterator const& other) -> bool
         return this->m_end == other.m_end;
     }
 
-    return this->m_file_offset == other.m_file_offset
-           && this->m_index_location == other.m_index_location;
+    return this->m_index == other.m_index && this->m_index_location == other.m_index_location;
 }
 
 auto SequentialFile::Iterator::operator!=(Iterator const& other) -> bool
