@@ -120,7 +120,7 @@ auto SequentialFile::RawIterator::operator==(RawIterator const& other) -> bool
 auto SequentialFile::RawIterator::operator!=(RawIterator const& other) -> bool
 {
     return !(*this == other);
-};
+}
 
 SequentialFile::Iterator::Iterator(
     std::filesystem::path data_filename,
@@ -295,7 +295,7 @@ void SequentialFile::Iterator::advance_until_next_valid()
 
         this->advance();
     }
-};
+}
 
 SequentialFile::SequentialFile(
     std::filesystem::path data_filename,
@@ -331,7 +331,7 @@ SequentialFile::SequentialFile(
         uint64_t next_position = 0;
         m_data_file.write(reinterpret_cast<char const*>(&next_position), sizeof(next_position));
     }
-};
+}
 
 auto SequentialFile::begin() const -> Iterator
 {
