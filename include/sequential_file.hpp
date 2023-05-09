@@ -83,7 +83,7 @@ public:
         RawIterator(std::filesystem::path filename, uint64_t index, SequentialFile const* sf);
         RawIterator(RawIterator const& it);
 
-        uint64_t calculate_offset(uint64_t index) const;
+        auto calculate_offset(uint64_t index) const -> uint64_t;
 
         auto operator*() const -> reference;
         auto operator->() const -> pointer;
@@ -136,7 +136,7 @@ public:
 
         auto operator=(Iterator const& other) -> Iterator&;
 
-        uint64_t calculate_offset(uint64_t index, IndexLocation index_location) const;
+        auto calculate_offset(uint64_t index, IndexLocation index_location) const -> uint64_t;
 
         auto operator*() const -> reference;
         auto operator->() const -> pointer;
@@ -158,21 +158,21 @@ public:
         Attribute key_attribute,
         uint64_t max_aux_size);
 
-    Iterator begin() const;
-    Iterator end() const;
+    auto begin() const -> Iterator;
+    auto end() const -> Iterator;
 
     void insert(nlohmann::json const& key, uint64_t relation_index);
 
-    bool remove_record(nlohmann::json key, uint64_t relation_index);
+    auto remove_record(nlohmann::json key, uint64_t relation_index) -> bool;
 
     void merge_data();
 
-    std::optional<Iterator> find_location_to_add(nlohmann::json const& key);
+    auto find_location_to_add(nlohmann::json const& key) -> std::optional<Iterator>;
 
-    std::pair<IndexLocation, uint64_t> get_header() const;
+    auto get_header() const -> std::pair<IndexLocation, uint64_t>;
     void set_header(IndexLocation index_location, uint64_t next_position) const;
 
-    uint64_t calculate_offset(uint64_t index, IndexLocation index_location);
+    auto calculate_offset(uint64_t index, IndexLocation index_location) -> uint64_t;
 
     void
     write_record(IndexLocation index_location, uint64_t index, IndexRecord const& record) const;
