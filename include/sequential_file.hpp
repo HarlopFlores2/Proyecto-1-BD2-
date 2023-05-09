@@ -553,7 +553,7 @@ public:
             merge_data();
         }
 
-        auto it_o = findLocationToAdd(key);
+        auto it_o = find_location_to_add(key);
 
         IndexRecord<Key> ir;
         ir.key = key;
@@ -705,7 +705,7 @@ public:
         }
     }
 
-    std::optional<Iterator> findLocationToAdd(Key const& key)
+    std::optional<Iterator> find_location_to_add(Key const& key)
     {
         /*
         ** Returns the last *active* location with a value less than key.
