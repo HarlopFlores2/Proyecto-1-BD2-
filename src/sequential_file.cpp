@@ -27,7 +27,7 @@ using json = nlohmann::json;
 
 SequentialFile::RawIterator::RawIterator(
     std::filesystem::path filename, uint64_t index, SequentialFile const* sf)
-    : m_filename(filename),
+    : m_filename(std::move(filename)),
       m_file(m_filename, std::ios::in | std::ios::binary),
       m_index(index),
       m_sf(sf)
