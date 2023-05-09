@@ -21,6 +21,8 @@
 #include <utility>
 #include <vector>
 
+#include "json.hpp"
+
 using namespace std;
 
 enum class IndexLocation
@@ -30,10 +32,9 @@ enum class IndexLocation
     no_next
 };
 
-template<typename Key>
 struct IndexRecord
 {
-    Key key;
+    nlohmann::json key;
     uint64_t relation_index;
 
     IndexLocation next_file;
@@ -47,7 +48,6 @@ struct IndexRecord
     }
 };
 
-template<typename Key>
 class sequentialFile
 {
     std::filesystem::path m_data_filename;
@@ -60,15 +60,15 @@ class sequentialFile
 
 public:
     constexpr static uint64_t header_size =
-        sizeof(IndexRecord<Key>::next_file) + sizeof(IndexRecord<Key>::next_position);
+        sizeof(IndexRecord::next_file) + sizeof(IndexRecord::next_position);
 
     class RawIterator
     {
         using iterator_category = std::bidirectional_iterator_tag;
-        using value_type = IndexRecord<Key>;
+        using value_type = IndexRecord;
         using difference_type = std::ptrdiff_t;
-        using reference = IndexRecord<Key> const&;
-        using pointer = IndexRecord<Key> const*;
+        using reference = IndexRecord const&;
+        using pointer = IndexRecord const*;
 
     private:
         std::filesystem::path m_filename;
@@ -77,7 +77,7 @@ public:
 
         uint64_t m_record_size;
 
-        mutable std::optional<IndexRecord<Key>> m_value_read;
+        mutable std::optional<IndexRecord> m_value_read;
 
         RawIterator(std::filesystem::path filename, uint64_t index, uint64_t record_size)
             : m_filename(filename),
@@ -102,7 +102,7 @@ public:
         {
             if (!m_value_read.has_value())
             {
-                IndexRecord<Key> temp;
+                IndexRecord temp;
                 m_file.seekg(calculate_offset(m_index), std::ios::beg);
                 m_file >> temp;
                 m_value_read.emplace(temp);
@@ -186,8 +186,8 @@ public:
 
         using iterator_category = std::bidirectional_iterator_tag;
         using difference_type = std::ptrdiff_t;
-        using reference = IndexRecord<Key> const&;
-        using pointer = IndexRecord<Key> const*;
+        using reference = IndexRecord const&;
+        using pointer = IndexRecord const*;
 
     private:
         mutable std::ifstream m_data_file;
@@ -201,7 +201,7 @@ public:
 
         uint64_t m_record_size;
 
-        mutable std::optional<IndexRecord<Key>> m_value_read;
+        mutable std::optional<IndexRecord> m_value_read;
         bool m_end = false;
 
         Iterator(
@@ -259,7 +259,7 @@ public:
 
             if (!m_value_read.has_value())
             {
-                IndexRecord<Key> temp;
+                IndexRecord temp;
 
                 if (m_index_location == IndexLocation::data)
                 {
@@ -291,7 +291,7 @@ public:
 
         void advance()
         {
-            IndexRecord<Key> temp = **this;
+            IndexRecord temp = **this;
 
             m_index = temp.next_position;
             m_index_location = temp.next_file;
@@ -353,7 +353,7 @@ public:
                     return;
                 }
 
-                IndexRecord<Key> ir = **this;
+                IndexRecord ir = **this;
 
                 if (ir.deleted != 1)
                 {
@@ -414,7 +414,7 @@ public:
             m_data_filename, m_aux_filename, 0, IndexLocation::no_next, sizeRecord());
     }
 
-    void insert(Key const& key, uint64_t relation_index)
+    void insert(nlohmann::json const& key, uint64_t relation_index)
     {
         m_aux_file.seekg(0, std::ios::end);
         if (m_aux_file.tellg() / sizeRecord() >= m_max_aux_size)
@@ -424,7 +424,7 @@ public:
 
         auto it_o = find_location_to_add(key);
 
-        IndexRecord<Key> ir;
+        IndexRecord ir;
         ir.key = key;
         ir.relation_index = relation_index;
         ir.deleted = false;
@@ -454,7 +454,7 @@ public:
         {
             Iterator it = it_o.value();
 
-            IndexRecord<Key> temp = *it;
+            IndexRecord temp = *it;
             temp.next_file = IndexLocation::aux;
             temp.next_position = index_to_add;
 
@@ -462,10 +462,10 @@ public:
         }
     }
 
-    bool remove_record(Key key, uint64_t relation_index)
+    bool remove_record(nlohmann::json key, uint64_t relation_index)
     {
         auto remove_next = [&](Iterator it) -> void {
-            IndexRecord<Key> ir = *it;
+            IndexRecord ir = *it;
 
             if (ir.next_file == IndexLocation::no_next)
             {
@@ -474,7 +474,7 @@ public:
 
             Iterator it_next = it;
             ++it_next;
-            IndexRecord<Key> ir_next = *it_next;
+            IndexRecord ir_next = *it_next;
 
             ir_next.deleted = true;
             this->write_record(it_next.m_index_location, it_next.m_index, ir_next);
@@ -499,7 +499,7 @@ public:
 
             if (it->relation_index == relation_index)
             {
-                IndexRecord<Key> ir = *it;
+                IndexRecord ir = *it;
 
                 set_header(ir.next_file, ir.next_position);
 
@@ -548,7 +548,7 @@ public:
 
         bool written_one = false;
 
-        for (IndexRecord<Key> const& ir : *this)
+        for (IndexRecord const& ir : *this)
         {
             written_one = true;
             new_data_file << ir;
@@ -568,7 +568,7 @@ public:
         }
     }
 
-    std::optional<Iterator> find_location_to_add(Key const& key)
+    std::optional<Iterator> find_location_to_add(nlohmann::json const& key)
     {
         /*
         ** Returns the last *active* location with a value less than key.
@@ -581,7 +581,7 @@ public:
             throw std::runtime_error("Data file couldn't be opened.");
         }
 
-        IndexRecord<Key> temp;
+        IndexRecord temp;
 
         data_file.seekg(0, ios::end);
         long n_records = data_file.tellg() / sizeRecord();
@@ -596,7 +596,7 @@ public:
         reverse_raw_iterator r_begin(RawIterator(m_data_filename, n_records, sizeRecord()));
 
         reverse_raw_iterator r_it = std::upper_bound(
-            r_begin, r_end, [=](IndexRecord<Key> ir) -> bool { return ir.key < key; });
+            r_begin, r_end, [=](IndexRecord ir) -> bool { return ir.key < key; });
 
         while (r_it != r_end)
         {
@@ -686,7 +686,7 @@ public:
     }
 
     void
-    write_record(IndexLocation index_location, uint64_t index, IndexRecord<Key> const& record)
+    write_record(IndexLocation index_location, uint64_t index, IndexRecord const& record)
     {
         if (index_location == IndexLocation::data)
         {
@@ -704,6 +704,6 @@ public:
 
     int sizeRecord()
     {
-        return sizeof(IndexRecord<Key>);
+        return sizeof(IndexRecord);
     }
 };
