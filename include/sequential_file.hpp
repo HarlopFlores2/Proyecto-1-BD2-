@@ -40,12 +40,6 @@ struct IndexRecord
     IndexLocation next_file;
     uint64_t next_position = std::numeric_limits<uint64_t>::max();
     bool deleted = false;
-
-    void print(std::ostream& out = std::cerr)
-    {
-        out << "{" << key << ": " << relation_index << ", " << next_file << ", " << deleted
-            << "}\n";
-    }
 };
 
 class sequentialFile
