@@ -417,11 +417,9 @@ auto SequentialFile::remove_record(nlohmann::json key, uint64_t relation_index) 
 
     std::optional<Iterator> it_o = this->find_location_to_add(key);
 
-    Iterator it;
+    Iterator it = this->begin();
     if (!it_o.has_value())
     {
-        it = this->begin();
-
         if (it == this->end() || it->key != key)
         {
             return false;
