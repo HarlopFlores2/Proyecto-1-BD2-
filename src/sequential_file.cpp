@@ -576,7 +576,9 @@ auto SequentialFile::find_location_to_add(json const& key) -> std::optional<Iter
     reverse_raw_iterator r_begin(RawIterator(m_data_filename, n_records, this));
 
     reverse_raw_iterator r_it =
-        std::upper_bound(r_begin, r_end, [=](IndexRecord ir) -> bool { return ir.key < key; });
+        std::upper_bound(r_begin, r_end, key, [](json const& j, IndexRecord const& ir) -> bool {
+            return ir.key < j;
+        });
 
     while (r_it != r_end)
     {
