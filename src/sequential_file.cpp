@@ -122,6 +122,20 @@ auto SequentialFile::RawIterator::operator++(int) -> RawIterator
     return it;
 }
 
+auto SequentialFile::RawIterator::operator--() -> RawIterator&
+{
+    (*this) -= 1;
+
+    return *this;
+}
+
+auto SequentialFile::RawIterator::operator--(int) -> RawIterator
+{
+    RawIterator it{*this};
+    --it;
+    return it;
+}
+
 auto SequentialFile::RawIterator::operator==(RawIterator const& other) -> bool
 {
     if (this->m_filename != other.m_filename)

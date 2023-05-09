@@ -98,6 +98,8 @@ public:
 
         auto operator++() -> RawIterator&;
         auto operator++(int) -> RawIterator;
+        auto operator--() -> RawIterator&;
+        auto operator--(int) -> RawIterator;
 
         auto operator==(RawIterator const& other) -> bool;
         auto operator!=(RawIterator const& other) -> bool;
