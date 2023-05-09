@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "base_relation.hpp"
+#include "index.hpp"
 #include "json.hpp"
 
 struct MemoryRelation : public Relation
@@ -45,7 +46,7 @@ struct MemoryRelation : public Relation
 
     MemoryRelation(
         std::vector<Attribute> attributes,
-        std::map<int, int> indexes,
+        std::vector<index_type> indexes,
         std::vector<nlohmann::json> tuples);
 
     auto begin() const -> Iterator;

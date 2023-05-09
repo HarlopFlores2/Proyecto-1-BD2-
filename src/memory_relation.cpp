@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "attribute.hpp"
+#include "index.hpp"
 #include "json.hpp"
 #include "memory_relation.hpp"
 
@@ -73,7 +74,7 @@ auto operator!=(MemoryRelation::Iterator const& a, MemoryRelation::Iterator cons
 
 MemoryRelation::MemoryRelation(
     std::vector<Attribute> attributes,
-    std::map<int, int> indexes,
+    std::vector<index_type> indexes,
     std::vector<nlohmann::json> tuples)
     : Relation(std::move(attributes), std::move(indexes)),
       m_tuples(std::move(tuples))

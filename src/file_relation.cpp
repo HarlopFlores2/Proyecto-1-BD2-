@@ -15,6 +15,7 @@
 #include "attribute.hpp"
 #include "base_relation.hpp"
 #include "file_relation.hpp"
+#include "index.hpp"
 #include "json.hpp"
 #include "memory_relation.hpp"
 
@@ -181,7 +182,7 @@ void FileRelation::Iterator::advance_until_next_valid()
 
 FileRelation::FileRelation(
     std::vector<Attribute> attributes,
-    std::map<int, int> indexes,
+    std::vector<index_type> indexes,
     std::string name,
     std::filesystem::path filename)
     : Relation(std::move(attributes), std::move(indexes)),

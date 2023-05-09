@@ -13,6 +13,7 @@
 
 #include "attribute.hpp"
 #include "base_relation.hpp"
+#include "index.hpp"
 #include "json.hpp"
 #include "memory_relation.hpp"
 
@@ -70,7 +71,7 @@ struct FileRelation : public Relation
 
     FileRelation(
         std::vector<Attribute> attributes,
-        std::map<int, int> indexes,
+        std::vector<index_type> indexes,
         std::string name,
         std::filesystem::path filename);
 
