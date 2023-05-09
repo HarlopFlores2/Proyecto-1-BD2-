@@ -48,7 +48,7 @@ public:
                                                      + sizeof(next_position) + sizeof(deleted);
     };
 
-private:
+public:
     std::filesystem::path m_data_filename;
     std::filesystem::path m_aux_filename;
 
