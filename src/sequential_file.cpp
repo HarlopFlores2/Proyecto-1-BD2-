@@ -35,28 +35,47 @@ SequentialFile::RawIterator::RawIterator(
     m_file.exceptions(std::ios::failbit);
 }
 
-SequentialFile::RawIterator::RawIterator(RawIterator const& it)
-    : RawIterator{it.m_filename, it.m_index, it.m_sf}
+SequentialFile::RawIterator::RawIterator(RawIterator const& other)
+    : RawIterator{other.m_filename, other.m_index, other.m_sf}
 {
+}
+
+SequentialFile::RawIterator::RawIterator(RawIterator&& other) noexcept
+    : m_filename(std::move(other.m_filename)),
+      m_file(std::move(other.m_file)),
+      m_index(other.m_index),
+      m_value_read(std::move(other.m_value_read)),
+      m_sf(other.m_sf)
+{
+}
+
+void SequentialFile::RawIterator::swap(RawIterator& other)
+{
+    std::swap(m_filename, other.m_filename);
+    std::swap(m_file, other.m_file);
+    std::swap(m_index, other.m_index);
+    std::swap(m_value_read, other.m_value_read);
+    std::swap(m_sf, other.m_sf);
+}
+
+void SequentialFile::RawIterator::swap(RawIterator&& other)
+{
+    std::swap(m_filename, other.m_filename);
+    std::swap(m_file, other.m_file);
+    std::swap(m_index, other.m_index);
+    std::swap(m_value_read, other.m_value_read);
+    std::swap(m_sf, other.m_sf);
 }
 
 auto SequentialFile::RawIterator::operator=(RawIterator const& other) -> RawIterator&
 {
-    if (this == &other)
-    {
-        return *this;
-    }
+    this->swap(RawIterator(other));
+    return *this;
+}
 
-    m_filename = other.m_filename;
-    m_index = other.m_index;
-
-    m_value_read.reset();
-
-    m_sf = other.m_sf;
-
-    m_file.close();
-    m_file.open(m_filename, std::ios::in | std::ios::binary);
-
+auto SequentialFile::RawIterator::operator=(RawIterator&& other) noexcept -> RawIterator&
+{
+    this->swap(other);
     return *this;
 }
 
