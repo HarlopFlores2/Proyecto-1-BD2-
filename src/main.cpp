@@ -1,4 +1,5 @@
 #include <iostream>
+#include <istream>
 #include <string>
 
 #include "database.hpp"
@@ -54,6 +55,8 @@ auto main(int argc, char** argv) -> int
             {
                 std::cout << "No output" << std::endl;
             }
+
+            std::cin >> std::ws;
         }
 
         return 0;
