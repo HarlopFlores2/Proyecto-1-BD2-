@@ -602,7 +602,7 @@ auto SequentialFile::calculate_offset(uint64_t index, IndexLocation index_locati
 }
 
 void SequentialFile::write_record(
-    IndexLocation index_location, uint64_t index, IndexRecord const& record)
+    IndexLocation index_location, uint64_t index, IndexRecord const& record) const
 {
     if (index_location == IndexLocation::data)
     {
@@ -618,7 +618,7 @@ void SequentialFile::write_record(
     throw std::runtime_error("???");
 }
 
-void SequentialFile::write_record(IndexRecord const& ir, std::ostream& os)
+void SequentialFile::write_record(IndexRecord const& ir, std::ostream& os) const
 {
     m_key_attribute.write(os, ir.key);
     os.write(reinterpret_cast<char const*>(&ir.relation_index), sizeof(ir.relation_index));
@@ -627,7 +627,7 @@ void SequentialFile::write_record(IndexRecord const& ir, std::ostream& os)
     os.write(reinterpret_cast<char const*>(&ir.deleted), sizeof(ir.deleted));
 }
 
-auto SequentialFile::read_record(std::istream& in) -> IndexRecord
+auto SequentialFile::read_record(std::istream& in) const -> IndexRecord
 {
     IndexRecord ir;
 
