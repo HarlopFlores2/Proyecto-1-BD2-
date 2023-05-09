@@ -512,12 +512,6 @@ auto SequentialFile::find_location_to_add(nlohmann::json const& key) -> std::opt
     data_file.seekg(0, std::ios::end);
     long n_records = data_file.tellg() / m_record_size;
 
-    long l = 0;
-    long r = n_records - 1;
-
-    long index = -1;
-    long file = -1;
-
     reverse_raw_iterator r_end(RawIterator(m_data_filename, 0, this));
     reverse_raw_iterator r_begin(RawIterator(m_data_filename, n_records, this));
 
