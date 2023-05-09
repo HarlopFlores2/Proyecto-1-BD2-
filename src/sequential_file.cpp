@@ -325,7 +325,7 @@ void SequentialFile::Iterator::advance_until_next_valid()
 
         IndexRecord ir = **this;
 
-        if (ir.deleted != 1)
+        if (ir.deleted == false)
         {
             return;
         }
@@ -559,7 +559,7 @@ auto SequentialFile::find_location_to_add(json const& key) -> std::optional<Iter
 
     while (r_it != r_end)
     {
-        if (r_it->deleted == 0)
+        if (r_it->deleted == false)
         {
             Iterator it(
                 m_data_filename,
