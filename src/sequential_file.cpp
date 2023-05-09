@@ -374,7 +374,7 @@ void SequentialFile::insert(nlohmann::json const& key, uint64_t relation_index)
     m_aux_file.seekp(0, std::ios::end);
     uint64_t index_to_add = m_aux_file.tellp() / m_record_size;
 
-    m_aux_file << ir;
+    this->write_record(ir, m_aux_file);
 
     if (!it_o.has_value())
     {
@@ -479,7 +479,7 @@ void SequentialFile::merge_data()
     for (IndexRecord const& ir : *this)
     {
         written_one = true;
-        new_data_file << ir;
+        this->write_record(ir, new_data_file);
     }
 
     m_data_file.close();
@@ -617,12 +617,12 @@ void SequentialFile::write_record(
     if (index_location == IndexLocation::data)
     {
         m_data_file.seekp(header_size + index * m_record_size);
-        m_data_file << record;
+        this->write_record(record, m_data_file);
     }
     else if (index_location == IndexLocation::aux)
     {
         m_aux_file.seekp(index * m_record_size);
-        m_aux_file << record;
+        this->write_record(record, m_aux_file);
     }
 
     throw std::runtime_error("???");
