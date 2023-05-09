@@ -1,6 +1,6 @@
 #include <iostream>
+#include <string>
 
-#include "attribute.hpp"
 #include "database.hpp"
 #include "operations.hpp"
 #include "parser.hpp"
@@ -9,7 +9,6 @@
 #include "tao/pegtl.hpp"
 #include "tao/pegtl/contrib/parse_tree.hpp"
 #include "tao/pegtl/contrib/parse_tree_to_dot.hpp"
-#include "tao/pegtl/string_input.hpp"
 
 namespace pegtl = tao::pegtl;
 
@@ -35,64 +34,58 @@ auto parse_expression(std::string const& s) -> ParsedExpression
     return process_tree(*root);
 }
 
-auto main() -> int
+auto main(int argc, char** argv) -> int
 {
     DataBase db("D1");
 
-    // auto& fr = db.create_relation(
-    //     "R1",
-    //     {
-    //         {"A1",   INTEGER{}},
-    //         {"A2", VARCHAR{10}},
-    //         {"A3", VARCHAR{24}}
-    // },
-    //     "A1");
+    if (argc == 1)
+    {
+        std::string temp;
+        while (std::getline(std::cin, temp, ';'))
+        {
+            temp += ";";
+            auto mr_o = db.evaluate(parse_expression(temp));
 
-    // fr.insert({11, "A2_1", "A3_1"});
-    // fr.insert({22, "A2_2", "A3_2"});
-    // fr.insert({33, "A2_3", "A3_3"});
-    // fr.insert({44, "A2_4", "A3_4"});
+            if (mr_o.has_value())
+            {
+                relation_to_csv(mr_o.value(), std::cout);
+            }
+            else
+            {
+                std::cout << "No output" << std::endl;
+            }
+        }
 
-    // relation_to_csv(db.project("R1", {"A3", "A2", "A1"}), std::cerr);
+        return 0;
+    }
 
-    // relation_to_csv(
-    //     db.select(
-    //         "R1",
-    //         {
-    //             P_C_UNEQUAL_A{"A1", 99}
-    // }),
-    //     std::cerr);
-    // relation_to_csv(
-    //     project(
-    //         db.select(
-    //             "R1",
-    //             {
-    //                 P_C_UNEQUAL_A{"A1", 33}
-    // }),
-    //         {"A1"}),
-    //     std::cerr);
+    pegtl::argv_input argv_in(argv, 1);
 
-    // relation_to_csv(
-    //     db.evaluate(parse_expression(R"(SELECT * FROM R1 WHERE A3 == "A3_1";)")).value(),
-    //     std::cerr);
+    auto root = pegtl::parse_tree::parse<grammar, selector>(argv_in);
+    if (!root)
+    {
+        throw std::runtime_error("Expression was not valid.");
+    }
 
-    // db.evaluate(parse_expression(R"(INSERT INTO R1 VALUES (99, "A2_99", "A3_99");)"));
+    if (argc == 3)
+    {
+        pegtl::parse_tree::print_dot(std::cout, *root);
+    }
+    else
+    {
+        ParsedExpression pe = process_tree(*root);
 
-    // relation_to_csv(db.select("R1", {}), std::cerr);
-    // db.remove(
-    //     "R1",
-    //     {
-    //         P_C_EQUAL_A{"A2", "A2_2"}
-    // });
+        auto mr_o = db.evaluate(pe);
 
-    relation_to_csv(db.select("R1", {}), std::cerr);
-
-    // db.evaluate(InsertCSVExpression{"R1", "r1_data.csv"});
-
-    db.evaluate(parse_expression("INSERT INTO R1 FROM CSV \"r1_data.csv\";"));
-    // auto it = parse_expression("INSERT INTO R1 FROM CSV \"r1_data.csv\";");
-
-    relation_to_csv(db.select("R1", {}), std::cerr);
+        if (mr_o.has_value())
+        {
+            relation_to_csv(mr_o.value(), std::cout);
+        }
+        else
+        {
+            std::cout << "No output\n";
+        }
+    }
 
     return 0;
 }
