@@ -121,7 +121,7 @@ public:
         uint64_t m_index;
         IndexLocation m_index_location;
 
-        uint64_t m_record_size;
+        SequentialFile const* m_sf;
 
         mutable std::optional<IndexRecord> m_value_read;
         bool m_end = false;
@@ -131,7 +131,7 @@ public:
             std::filesystem::path aux_filename,
             uint64_t file_index,
             IndexLocation index_location,
-            uint64_t record_size);
+            SequentialFile const* sf);
         Iterator(Iterator const& it);
 
         uint64_t calculate_offset(uint64_t index, IndexLocation index_location) const;
@@ -172,7 +172,8 @@ public:
 
     uint64_t calculate_offset(uint64_t index, IndexLocation index_location);
 
-    void write_record(IndexLocation index_location, uint64_t index, IndexRecord const& record) const;
+    void
+    write_record(IndexLocation index_location, uint64_t index, IndexRecord const& record) const;
     void write_record(IndexRecord const& ir, std::ostream& os) const;
     auto read_record(std::istream& in) const -> IndexRecord;
 

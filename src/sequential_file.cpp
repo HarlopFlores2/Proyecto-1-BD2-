@@ -127,14 +127,14 @@ SequentialFile::Iterator::Iterator(
     std::filesystem::path aux_filename,
     uint64_t file_index,
     IndexLocation index_location,
-    uint64_t record_size)
+    SequentialFile const* sf)
     : m_data_file(data_filename, std::ios::in | std::ios::binary),
       m_aux_file(aux_filename, std::ios::in | std::ios::binary),
       m_data_filename(data_filename),
       m_aux_filename(aux_filename),
       m_index(file_index),
       m_index_location(index_location),
-      m_record_size(record_size)
+      m_sf(sf)
 {
     m_data_file.exceptions(std::ios::failbit);
     m_aux_file.exceptions(std::ios::failbit);
@@ -144,12 +144,7 @@ SequentialFile::Iterator::Iterator(
 }
 
 SequentialFile::Iterator::Iterator(Iterator const& it)
-    : Iterator{
-        it.m_data_filename,
-        it.m_aux_filename,
-        it.m_index,
-        it.m_index_location,
-        it.m_record_size}
+    : Iterator{it.m_data_filename, it.m_aux_filename, it.m_index, it.m_index_location, it.m_sf}
 {
     m_end = it.m_end;
 }
@@ -159,11 +154,11 @@ SequentialFile::Iterator::calculate_offset(uint64_t index, IndexLocation index_l
 {
     if (index_location == IndexLocation::data)
     {
-        return header_size + index * m_record_size;
+        return header_size + index * m_sf->m_record_size;
     }
     else if (index_location == IndexLocation::aux)
     {
-        return index * m_record_size;
+        return index * m_sf->m_record_size;
     }
 
     throw std::runtime_error("???");
@@ -183,12 +178,12 @@ auto SequentialFile::Iterator::operator*() const -> reference
         if (m_index_location == IndexLocation::data)
         {
             m_data_file.seekg(calculate_offset(m_index, m_index_location), std::ios::beg);
-            m_data_file >> temp;
+            temp = m_sf->read_record(m_data_file);
         }
         else if (m_index_location == IndexLocation::aux)
         {
             m_aux_file.seekg(calculate_offset(m_index, m_index_location), std::ios::beg);
-            m_aux_file >> temp;
+            temp = m_sf->read_record(m_aux_file);
         }
         else
         {
