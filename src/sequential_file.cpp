@@ -464,7 +464,7 @@ void SequentialFile::merge_data()
 {
     std::filesystem::path new_data_filename = m_data_filename;
     new_data_filename += ".new";
-    fstream new_data_file(new_data_filename, ios::out | ios::binary);
+    std::fstream new_data_file(new_data_filename, std::ios::out | std::ios::binary);
 
     IndexLocation next_location = IndexLocation::data;
     uint64_t next_position = 0;
@@ -500,7 +500,7 @@ auto SequentialFile::find_location_to_add(nlohmann::json const& key) -> std::opt
     ** Returns the last *active* location with a value less than key.
     */
 
-    fstream data_file(m_data_filename, ios::in | ios::binary);
+    std::fstream data_file(m_data_filename, std::ios::in | std::ios::binary);
 
     if (!data_file)
     {
@@ -509,7 +509,7 @@ auto SequentialFile::find_location_to_add(nlohmann::json const& key) -> std::opt
 
     IndexRecord temp;
 
-    data_file.seekg(0, ios::end);
+    data_file.seekg(0, std::ios::end);
     long n_records = data_file.tellg() / m_record_size;
 
     long l = 0;
