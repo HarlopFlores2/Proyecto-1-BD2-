@@ -678,8 +678,10 @@ void SequentialFile::write_record(
         m_aux_file.seekp(index * m_record_size);
         this->write_record(record, m_aux_file);
     }
-
-    throw std::runtime_error("???");
+    else
+    {
+        throw std::runtime_error("???");
+    }
 }
 
 void SequentialFile::write_record(IndexRecord const& ir, std::ostream& os) const
