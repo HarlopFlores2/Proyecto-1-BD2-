@@ -174,6 +174,7 @@ public:
     void merge_data();
 
     auto find_location_to_add(nlohmann::json const& key) -> std::optional<Iterator>;
+    auto find_location(nlohmann::json const& key) -> Iterator;
 
     auto get_header() const -> std::pair<IndexLocation, uint64_t>;
     void set_header(IndexLocation index_location, uint64_t next_position) const;

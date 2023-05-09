@@ -630,6 +630,34 @@ auto SequentialFile::find_location_to_add(json const& key) -> std::optional<Iter
     return {it};
 }
 
+auto SequentialFile::find_location(nlohmann::json const& key) -> Iterator
+{
+    /*
+    ** Return an iterator to the first position greater or equal to key. Or end() if no such
+    ** position exists.
+    */
+
+    std::optional<Iterator> it_o = this->find_location_to_add(key);
+
+    Iterator it = this->begin();
+    if (!it_o.has_value())
+    {
+        auto [next_location, next_position] = get_header();
+        it = Iterator(m_data_filename, m_aux_filename, next_position, next_location, this);
+    }
+    else
+    {
+        it = it_o.value();
+    }
+
+    while (it != this->end() && it->key < key)
+    {
+        ++it;
+    }
+
+    return it;
+}
+
 auto SequentialFile::get_header() const -> std::pair<IndexLocation, uint64_t>
 {
     m_data_file.seekg(0, std::ios::beg);
