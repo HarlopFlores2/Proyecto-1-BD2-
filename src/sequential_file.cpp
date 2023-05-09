@@ -515,9 +515,32 @@ void SequentialFile::merge_data()
 
     bool written_one = false;
 
-    for (IndexRecord const& ir : *this)
+    uint64_t next_index = 1;
+    Iterator it = this->begin();
+
+    if (it != this->end())
     {
         written_one = true;
+
+        Iterator it_next = it;
+        ++it_next;
+
+        for (; it_next != this->end(); ++it, ++it_next)
+        {
+            IndexRecord ir = *it;
+
+            ir.next_file = IndexLocation::data;
+            ir.next_position = next_index;
+
+            this->write_record(ir, new_data_file);
+
+            ++next_index;
+        }
+
+        IndexRecord ir = *it;
+        ir.next_file = IndexLocation::no_next;
+        ir.next_position = 0;
+
         this->write_record(ir, new_data_file);
     }
 
@@ -532,6 +555,10 @@ void SequentialFile::merge_data()
     if (!written_one)
     {
         set_header(IndexLocation::no_next, 0);
+    }
+    else
+    {
+        set_header(IndexLocation::data, 0);
     }
 }
 
