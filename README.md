@@ -217,3 +217,19 @@ Dataset | Total de accesos
 100 | 44
 500 | 153
 1000 | 230
+
+## Conclusiones
+
+* La inserciones y búsquedas en el indice Sequential File son bastante
+eficientes para grandes cantidades de datos, ya que se realiza el 
+algoritmo de la búsqueda binaria, además la eliminacion es muy sencilla
+ya que solo se actualizan punteros, sin embargo se realiza
+una cantidad lineal de operaciones para el merge que se realizará
+de manera recurrente.
+
+* La manera en como esta implementada el insert del Extendible Hash
+es ineficiente debido a la gran cantidad de accesos a la memoria
+secundaria que se utiliza para calcular el local depth, asimismo 
+existe limitaciones con respecto al global depth, ya que el indice 
+puede escribirse en un archivo muy grande de datos. Por otro lado,
+búsqueda y eliminación se realizan de manera rápida y eficiente.
