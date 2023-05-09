@@ -83,7 +83,7 @@ struct predicate_less :
 struct predicate_greater :
     pegtl::seq<identifier_or_literal,
                spaces_s,
-               pegtl::one<'<'>,
+               pegtl::one<'>'>,
                spaces_s,
                identifier_or_literal> {};
 struct predicate_equal :
