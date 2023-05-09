@@ -21,6 +21,7 @@
 #include <utility>
 #include <vector>
 
+#include "attribute.hpp"
 #include "json.hpp"
 
 class SequentialFile
@@ -48,6 +49,8 @@ private:
 
     mutable std::fstream m_data_file;
     mutable std::fstream m_aux_file;
+
+    Attribute m_key_attribute;
 
     uint64_t m_max_aux_size;
 
@@ -146,6 +149,7 @@ public:
     explicit SequentialFile(
         std::filesystem::path data_filename,
         std::filesystem::path aux_filename,
+        Attribute key_attribute,
         uint64_t max_aux_size);
 
     Iterator begin() const;

@@ -288,9 +288,11 @@ void SequentialFile::Iterator::advance_until_next_valid()
 SequentialFile::SequentialFile(
     std::filesystem::path data_filename,
     std::filesystem::path aux_filename,
+    Attribute key_attribute,
     uint64_t max_aux_size)
     : m_data_filename(std::move(data_filename)),
       m_aux_filename(std::move(aux_filename)),
+      m_key_attribute(std::move(key_attribute)),
       m_max_aux_size(max_aux_size)
 {
     std::ofstream(m_data_filename, std::ios::app | std::ios::binary);
