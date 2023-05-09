@@ -11,6 +11,7 @@
 #include "attribute.hpp"
 #include "base_relation.hpp"
 #include "csv.hpp"
+#include "index.hpp"
 #include "json.hpp"
 #include "memory_relation.hpp"
 #include "predicates.hpp"
@@ -63,11 +64,25 @@ auto project(R const& relation, std::vector<std::string> const& attributes_names
 template<
     typename R,
     typename Un = typename std::enable_if<std::is_base_of<Relation, R>::value>::type>
-auto select_indexes(R const& relation, std::vector<predicate_type> const& predicates)
+auto select_indexes(R const& relation, std::vector<predicate_type> predicates)
     -> std::vector<uint64_t>
 {
     // XXX: Implementing generators could allow `select` to use `select_indexes` without needing
     // the intermediate indexes vector; alas, it's too hard.
+
+    std::optional<std::vector<uint64_t>> vector_o;
+    for (index_type& index : relation.m_indexes)
+    {
+        for (auto p_it = predicates.begin(); p_it != predicates.end(); ++p_it)
+        {
+            vector_o = operate_index(index, *p_it);
+            if (vector_o.has_value())
+            {
+                predicates.erase(p_it);
+                break;
+            }
+        }
+    }
 
     std::vector<tuple_validator_type> validators;
 
@@ -80,27 +95,54 @@ auto select_indexes(R const& relation, std::vector<predicate_type> const& predic
 
     std::vector<uint64_t> ret;
 
-    for (auto it = relation.begin(); it != relation.end(); ++it)
+    if (vector_o.has_value())
     {
-        nlohmann::json const& tuple = *it;
-
-        bool valid_tuple = true;
-        for (tuple_validator_type const& tv : validators)
+        for (uint64_t index : vector_o.value())
         {
-            if (!tv(tuple))
+            nlohmann::json tuple = relation.read(index);
+
+            bool valid_tuple = true;
+            for (tuple_validator_type const& tv : validators)
             {
-                valid_tuple = false;
-                break;
+                if (!tv(tuple))
+                {
+                    valid_tuple = false;
+                    break;
+                }
+            }
+
+            if (valid_tuple)
+            {
+                ret.push_back(index);
             }
         }
 
-        if (valid_tuple)
-        {
-            ret.push_back(it.calculate_index());
-        }
+        return ret;
     }
+    else
+    {
+        for (auto it = relation.begin(); it != relation.end(); ++it)
+        {
+            nlohmann::json const& tuple = *it;
 
-    return ret;
+            bool valid_tuple = true;
+            for (tuple_validator_type const& tv : validators)
+            {
+                if (!tv(tuple))
+                {
+                    valid_tuple = false;
+                    break;
+                }
+            }
+
+            if (valid_tuple)
+            {
+                ret.push_back(it.calculate_index());
+            }
+        }
+
+        return ret;
+    }
 }
 
 template<
