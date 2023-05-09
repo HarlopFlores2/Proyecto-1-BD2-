@@ -23,6 +23,8 @@
 
 #include "json.hpp"
 
+using json = nlohmann::json;
+
 SequentialFile::RawIterator::RawIterator(
     std::filesystem::path filename, uint64_t index, SequentialFile const* sf)
     : m_filename(filename),
@@ -371,7 +373,7 @@ auto SequentialFile::end() const -> Iterator
     return Iterator(m_data_filename, m_aux_filename, 0, IndexLocation::no_next, this);
 }
 
-void SequentialFile::insert(nlohmann::json const& key, uint64_t relation_index)
+void SequentialFile::insert(json const& key, uint64_t relation_index)
 {
     m_aux_file.seekg(0, std::ios::end);
     if (m_aux_file.tellg() / m_record_size >= m_max_aux_size)
@@ -419,7 +421,7 @@ void SequentialFile::insert(nlohmann::json const& key, uint64_t relation_index)
     }
 }
 
-auto SequentialFile::remove_record(nlohmann::json key, uint64_t relation_index) -> bool
+auto SequentialFile::remove_record(json key, uint64_t relation_index) -> bool
 {
     auto remove_next = [&](Iterator it) -> void {
         IndexRecord ir = *it;
@@ -521,7 +523,7 @@ void SequentialFile::merge_data()
     }
 }
 
-auto SequentialFile::find_location_to_add(nlohmann::json const& key) -> std::optional<Iterator>
+auto SequentialFile::find_location_to_add(json const& key) -> std::optional<Iterator>
 {
     /*
     ** Returns the last *active* location with a value less than key.
