@@ -7,13 +7,13 @@
 #include "sequential_file.hpp"
 #include "util.hpp"
 
-auto operate_index(index_type& index, predicate_type const& pred)
+auto operate_index(index_type const& index, predicate_type const& pred)
     -> std::optional<std::vector<uint64_t>>
 {
     using ret_type = std::optional<std::vector<uint64_t>>;
 
     return std::visit(
-        overloaded{[&](SequentialFile& sf) -> ret_type {
+        overloaded{[&](SequentialFile const& sf) -> ret_type {
             return std::visit(
                 overloaded{
                     [&](P_A_GREATER_C const& p) -> ret_type {

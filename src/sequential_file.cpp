@@ -571,7 +571,7 @@ void SequentialFile::merge_data()
     }
 }
 
-auto SequentialFile::find_location_to_add(json const& key) -> std::optional<Iterator>
+auto SequentialFile::find_location_to_add(json const& key) const -> std::optional<Iterator>
 {
     /*
     ** Returns the last *active* location with a value less than key.
@@ -639,7 +639,7 @@ auto SequentialFile::find_location_to_add(json const& key) -> std::optional<Iter
     return {it};
 }
 
-auto SequentialFile::find_location(nlohmann::json const& key) -> Iterator
+auto SequentialFile::find_location(nlohmann::json const& key) const -> Iterator
 {
     /*
     ** Return an iterator to the first position greater or equal to key. Or end() if no such

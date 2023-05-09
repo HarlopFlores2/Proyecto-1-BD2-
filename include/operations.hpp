@@ -71,7 +71,7 @@ auto select_indexes(R const& relation, std::vector<predicate_type> predicates)
     // the intermediate indexes vector; alas, it's too hard.
 
     std::optional<std::vector<uint64_t>> vector_o;
-    for (index_type& index : relation.m_indexes)
+    for (index_type const& index : relation.m_indexes)
     {
         for (auto p_it = predicates.begin(); p_it != predicates.end(); ++p_it)
         {
