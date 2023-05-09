@@ -691,6 +691,8 @@ void SequentialFile::write_record(IndexRecord const& ir, std::ostream& os) const
     os.write(reinterpret_cast<char const*>(&ir.next_file), sizeof(ir.next_file));
     os.write(reinterpret_cast<char const*>(&ir.next_position), sizeof(ir.next_position));
     os.write(reinterpret_cast<char const*>(&ir.deleted), sizeof(ir.deleted));
+
+    os.flush();
 }
 
 auto SequentialFile::read_record(std::istream& in) const -> IndexRecord
