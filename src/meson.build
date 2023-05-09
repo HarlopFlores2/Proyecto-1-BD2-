@@ -7,6 +7,7 @@ bd2_p2_library = library('bd2_p2',
                            'file_relation.cpp',
                            'memory_relation.cpp',
                            'predicates.cpp',
+                           'sequential_file.cpp',
                            link_with : [],
                            dependencies : thread_dep,
                            include_directories : inc)
