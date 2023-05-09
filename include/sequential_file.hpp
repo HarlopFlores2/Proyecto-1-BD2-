@@ -42,6 +42,9 @@ private:
         IndexLocation next_file;
         uint64_t next_position;
         bool deleted = false;
+
+        static constexpr uint64_t size_without_key = sizeof(relation_index) + sizeof(next_file)
+                                                     + sizeof(next_position) + sizeof(deleted);
     };
 
     std::filesystem::path m_data_filename;
@@ -51,6 +54,7 @@ private:
     mutable std::fstream m_aux_file;
 
     Attribute m_key_attribute;
+    uint64_t const m_record_size;
 
     uint64_t m_max_aux_size;
 
