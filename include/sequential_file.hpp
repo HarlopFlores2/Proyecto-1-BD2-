@@ -593,80 +593,74 @@ public:
         }
     }
 
-    bool removeRecord(int key)
+    bool remove_record(Key key, uint64_t relation_index)
     {
-        fstream data(m_data_file, ios::in | ios::out | ios::binary);
-        fstream aux(m_aux_file, ios::in | ios::out | ios::binary);
-        if (!data || !aux)
-            return false;
+        auto remove_next = [&](Iterator it) -> void {
+            IndexRecord<Key> ir = *it;
 
-        IndexRecord<Key> tempPrev, temp;
-        pair<int, int> loc = findLocation(key); // <file, position>
-        if (loc.first == 0)
-        {
-            data.seekg(loc.second * sizeRecord());
-            data >> temp;
-        }
-        else if (loc.first == 1)
-        {
-            aux.seekg(loc.second * sizeRecord());
-            aux >> temp;
-        }
+            if (ir.next_file == IndexLocation::no_next)
+            {
+                return;
+            }
 
-        if (temp.key != key || temp.deleted)
-        {
-            cerr << "No existe registro con ese key\n";
-            return false;
-        }
+            Iterator it_next = it;
+            ++it_next;
+            IndexRecord<Key> ir_next = *it_next;
 
-        pair<int, int> locPrev = findLocation(key - 1); // <file, position>
-        if (locPrev.first == 0)
-        {
-            data.seekg(locPrev.second * sizeRecord());
-            data >> tempPrev;
-        }
-        else if (locPrev.first == 1)
-        {
-            aux.seekg(locPrev.second * sizeRecord());
-            aux >> tempPrev;
-        }
+            ir_next.deleted = true;
+            this->write_record(it_next.m_index_location, it_next.m_index, ir_next);
 
-        tempPrev.nextFile = temp.nextFile;
-        tempPrev.nextPosition = temp.nextPosition;
-        temp.deleted = 1;
+            ir.next_file = ir_next.next_file;
+            ir.next_position = ir_next.next_position;
 
-        if (locPrev.first == 0 && loc.first == 0)
+            this->write_record(it.m_index_location, it.m_index, ir);
+        };
+
+        std::optional<Iterator> it_o = this->find_location_to_add(key);
+
+        Iterator it;
+        if (!it_o.has_value())
         {
-            data.seekp(locPrev.second * sizeRecord());
-            data << tempPrev;
-            data.seekp(loc.second * sizeRecord());
-            data << temp;
+            it = this->begin();
+
+            if (it == this->end() || it->key != key)
+            {
+                return false;
+            }
+
+            if (it->relation_index == relation_index)
+            {
+                IndexRecord<Key> ir = *it;
+
+                set_header(ir.next_file, ir.next_position);
+
+                ir.deleted = true;
+                this->write_record(it.m_index_location, it.m_index, ir);
+
+                return true;
+            }
         }
-        else if (locPrev.first == 1 && loc.first == 1)
+        else
         {
-            aux.seekp(locPrev.second * sizeRecord());
-            aux << tempPrev;
-            aux.seekp(loc.second * sizeRecord());
-            aux << temp;
-        }
-        else if (locPrev.first == 0 && loc.first == 1)
-        {
-            data.seekp(locPrev.second * sizeRecord());
-            data << tempPrev;
-            aux.seekp(loc.second * sizeRecord());
-            aux << temp;
-        }
-        else if (locPrev.first == 1 && loc.first == 0)
-        {
-            aux.seekp(locPrev.second * sizeRecord());
-            aux << tempPrev;
-            data.seekp(loc.second * sizeRecord());
-            data << temp;
+            it = it_o.value();
         }
 
-        data.close();
-        aux.close();
-        return true;
+        Iterator it_next = it;
+        ++it_next;
+
+        while (it_next != this->end() && it_next->key == key)
+        {
+            if (it_next->relation_index == relation_index)
+            {
+                remove_next(it);
+                return true;
+            }
+
+            ++it;
+            ++it_next;
+        }
+
+        return false;
     }
 
     void merge_data()
