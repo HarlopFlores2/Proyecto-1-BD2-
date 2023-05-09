@@ -599,78 +599,52 @@ public:
         return results;
     }
 
-    bool insert(IndexRecord<Key> record)
+    void insert(Key const& key, uint64_t relation_index)
     {
-        fstream data(m_data_file, ios::out | ios::in | ios::binary);
-        fstream aux(m_aux_file, ios::out | ios::in | ios::binary);
-        fstream data2("../dataFile2.dat", ios::out | ios::binary);
-        if (!data || !aux)
-            return false;
-        aux.seekg(0, ios::end);
-        long sizeAux = aux.tellg() / sizeRecord();
-        if (sizeAux == m_max_aux_size)
+        m_aux_file.seekg(0, std::ios::end);
+        if (m_aux_file.tellg() / sizeRecord() >= m_max_aux_size)
         {
             merge_data();
-            data.close();
-            remove("..//dataFile.dat");
-            data2.close();
-            rename("..//dataFile2.dat", "..//dataFile.dat");
-            ofstream auxTemp;
-            auxTemp.open(m_aux_file, ios::out | ios::trunc);
-            auxTemp.close();
-            insert(record);
-            return true;
+        }
+
+        auto it_o = findLocationToAdd(key);
+
+        IndexRecord<Key> ir;
+        ir.key = key;
+        ir.relation_index = relation_index;
+        ir.deleted = false;
+
+        if (it_o.has_value())
+        {
+            ir.next_file = it_o.m_index_location;
+            ir.next_position = it_o.m_index;
         }
         else
         {
-            // si la key no esta
-            pair<int, int> prev = findLocation(record.key);
-            // cout << prev.first << " " << prev.second << endl;
-            aux.seekg(0, ios::end);
-            long sizeAux = aux.tellg() / sizeRecord();
-            if (prev.first == 0)
-            {
-                // si la key esta en data
-                data.seekg(prev.second * sizeRecord());
-                IndexRecord<Key> temp;
-                data >> temp;
-                if (temp.key == record.key)
-                    return false;
-                // actualizar puntero de record
-                record.nextPosition = temp.nextPosition;
-                record.nextFile = temp.nextFile;
-                // actualizar puntero del anterior
-                temp.nextPosition = sizeAux;
-                temp.nextFile = 1;
-                data.seekp(prev.second * sizeRecord());
-                data << temp;
-                aux.seekp(sizeAux * sizeRecord());
-                aux << record;
-                data.close();
-                aux.close();
-            }
-            else
-            {
-                // si la key esta en aux
-                aux.seekg(prev.second * sizeRecord());
-                IndexRecord<Key> temp;
-                aux >> temp;
-                if (temp.key == record.key)
-                    return false;
-                // actualizar puntero de record
-                record.nextPosition = temp.nextPosition;
-                record.nextFile = temp.nextFile;
-                // actualizar puntero del anterior
-                temp.nextPosition = sizeAux;
-                temp.nextFile = 1;
-                aux.seekp(prev.second * sizeRecord());
-                aux << temp;
-                aux.seekp(sizeAux * sizeRecord());
-                aux << record;
-            }
+            auto [next_location, next_index] = get_header();
+            ir.next_file = next_location;
+            ir.next_position = next_index;
         }
-        data.close();
-        aux.close();
+
+        m_aux_file.seekp(0, std::ios::end);
+        uint64_t index_to_add = m_aux_file.tellp() / sizeRecord();
+
+        m_aux_file << ir;
+
+        if (!it_o.has_value())
+        {
+            this->set_header(IndexLocation::aux, index_to_add);
+        }
+        else
+        {
+            Iterator it = it_o.value();
+
+            IndexRecord<Key> temp = *it;
+            temp.next_file = IndexLocation::aux;
+            temp.next_position = index_to_add;
+
+            this->write_record(it.m_index_location, it.m_index, temp);
+        }
     }
 
     bool removeRecord(int key)
