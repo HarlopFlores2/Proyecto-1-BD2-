@@ -587,7 +587,7 @@ auto SequentialFile::find_location_to_add(json const& key) -> std::optional<Iter
             Iterator it(
                 m_data_filename,
                 m_aux_filename,
-                r_it.base().m_index,
+                (r_it.base() - 1).m_index,
                 IndexLocation::data,
                 this);
             Iterator it_next(it);
