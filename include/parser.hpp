@@ -95,7 +95,7 @@ struct predicate_equal :
 struct predicate_unequal :
     pegtl::seq<identifier_or_literal,
                spaces_s,
-               pegtl::one<'!', '='>,
+               pegtl::string<'!', '='>,
                spaces_s,
                identifier_or_literal> {};
 struct predicate_between :
