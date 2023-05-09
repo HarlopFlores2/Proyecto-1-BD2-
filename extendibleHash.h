@@ -413,6 +413,75 @@ public:
         return result;
     }
 
+    bool remove(int key) {
+        fstream index(indexFile, ios::in | ios::binary);
+        fstream data(hashFile, ios::in | ios::binary);
+        
+        int indexKey = key % (1 << globalDepth);
+
+        index.seekg(indexKey * sizeIndex());
+        indexDepth temp;
+        index >> temp;
+
+        string hashKey = to_hash(key, temp.lenLast);
+
+        data.seekg(btoi(hashKey) * sizeBucket<typeRecord>());
+        Bucket<typeRecord> bucket;
+        data >> bucket;
+        int pos, notFound = 0;
+
+        for (int i = 0; i < bucket.size; i++) {
+            if (bucket.records[i].getKey() == key) {
+                pos = i;
+                break;
+            } else {
+                notFound++;
+            }
+        }
+
+        if (notFound == bucket.size && bucket.nextPosition == -1) {
+            cerr << "Registro no existe";
+            return false;
+        } else {
+            typeRecord emptyRec;
+            bucket.records[pos] = emptyRec;
+            bucket.size -= 1;
+            data.seekp(btoi(hashKey) * sizeBucket<typeRecord>());
+            data << bucket;
+        }
+        
+        int newNotFound = -1;
+        int nextPosition = bucket.nextPosition;
+        while (nextPosition != -1) {
+            newNotFound = 0;
+            data.seekg(nextPosition * sizeBucket<typeRecord>());
+            data >> bucket;            
+            for (int i = 0; i < bucket.size; i++) {
+                if (bucket.records[i].getKey() == key) {
+                    pos = i;
+                    break;
+                } else {
+                    newNotFound++;
+                }
+            }            
+            nextPosition = bucket.nextPosition;
+        }
+
+        if (newNotFound == bucket.size) {
+            cerr << "Registro no existe";
+            return false;
+        } else {
+            typeRecord emptyRec;
+            bucket.records[pos] = emptyRec;
+            bucket.size -= 1;
+            data.seekp(btoi(hashKey) * sizeBucket<typeRecord>());
+            data << bucket;
+        }
+
+        index.close();
+        data.close();
+        return true;
+    }
 };
 
 
