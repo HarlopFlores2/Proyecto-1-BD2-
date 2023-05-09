@@ -649,6 +649,8 @@ void SequentialFile::set_header(IndexLocation index_location, uint64_t next_posi
 
     m_data_file.write(reinterpret_cast<char const*>(&index_location), sizeof(index_location));
     m_data_file.write(reinterpret_cast<char const*>(&next_position), sizeof(next_position));
+
+    m_data_file.flush();
 }
 
 auto SequentialFile::calculate_offset(uint64_t index, IndexLocation index_location) -> uint64_t
