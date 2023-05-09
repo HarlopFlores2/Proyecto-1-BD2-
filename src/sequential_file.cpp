@@ -361,8 +361,8 @@ void SequentialFile::insert(nlohmann::json const& key, uint64_t relation_index)
 
     if (it_o.has_value())
     {
-        ir.next_file = it_o.m_index_location;
-        ir.next_position = it_o.m_index;
+        ir.next_file = it_o->m_index_location;
+        ir.next_position = it_o->m_index;
     }
     else
     {
