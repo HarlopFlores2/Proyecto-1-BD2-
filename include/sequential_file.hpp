@@ -164,6 +164,9 @@ public:
         Attribute key_attribute,
         uint64_t max_aux_size);
 
+    SequentialFile(SequentialFile const& other);
+    SequentialFile(SequentialFile&& other) = delete;
+
     auto begin() const -> Iterator;
     auto end() const -> Iterator;
 

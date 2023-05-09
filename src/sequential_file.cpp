@@ -372,6 +372,15 @@ SequentialFile::SequentialFile(
     }
 }
 
+SequentialFile::SequentialFile(SequentialFile const& other)
+    : SequentialFile(
+        other.m_data_filename,
+        other.m_aux_filename,
+        other.m_key_attribute,
+        other.m_max_aux_size)
+{
+}
+
 auto SequentialFile::begin() const -> Iterator
 {
     auto [next_location, next_position] = get_header();
