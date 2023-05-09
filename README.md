@@ -124,6 +124,8 @@ Esta funcion permite eliminar registros en Extendible Hashing. Primero, se calcu
 
 ## Resultados
 
+### Sequential File
+
 Para la realización de experimentos, se creó datasets de tamaño 1000, 5000 y 10000. Los cuales están guardados en un archivo .csv
 Asimismo, se realizo 5 operaciones para la inserción y la búsqueda.
 
@@ -172,3 +174,46 @@ Dataset | Total de accesos
 5000 | 67
 10000 | 72
 
+### Extendible Hash
+
+Para la realización de experimentos, se creó datasets de tamaño 100, 500 y 1000. Los cuales están guardados en un archivo .csv
+
+### Tiempo de ejecución
+
+Para la inserción del Extendible Hash se realizaron cantidad de inserciones de acuerdo al tamaño del dataset.
+Dando como resultado la siguiente tabla.
+
+Dataset | Tiempo (ms)
+------------ | -------------
+100 | 282
+500 | 2085
+1000 | 5023
+
+Para la búsqueda del Extendible Hash se realizaron cantidad de búsquedas de acuerdo al tamaño del dataset.
+Dando como resultado la siguiente tabla.
+
+
+Dataset | Tiempo (ms)
+------------ | -------------
+100 | 15
+500 | 38
+1000 | 69
+
+### Accesos a memoria secundaria
+
+Durante las pruebas, también se obtuvo la cantidad de accesos a disco. Asimismo, esto fue ejecutado en los diferentes datasets creados.
+Para la inserción se obtuvo la siguiente tabla.
+
+Dataset | Total de accesos
+------------ | -------------
+100 | 3140
+500 | 6628
+1000 | 14453
+
+De la misma manera, la búsqueda obtuvo la siguiente tabla.
+
+Dataset | Total de accesos
+------------ | -------------
+100 | 44
+500 | 153
+1000 | 230

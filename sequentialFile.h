@@ -21,15 +21,6 @@
 
 using namespace std;
 
-void readFromConsole(char buffer[], int size) {
-    string temp;
-    cin >> temp;
-    for (int i = 0; i < size; i++)
-        buffer[i] = (i < temp.size()) ? temp[i] : ' ';
-    buffer[size - 1] = '\0';
-    cin.clear();
-}
-
 
 template<typename typeRecord, typename typeKey>
 struct fixedRecord{
@@ -103,43 +94,29 @@ public:
         aux.close();
     }
 
-    int countD(const char* d, const char* a){
-        fstream data(d, ios::in | ios::binary);
-        fstream aux(a, ios::in | ios::binary);
-        int countDeleted = 0;
-        fixedRecord<typeRecord,typeKey> recIt;
-        data.seekg(0,ios::end);
-        int pos = 0, cant = data.tellg() / sizeRecord();
-        while(pos<=cant){
-            data.seekg(pos * sizeRecord());
-            data >> recIt;
-            if (recIt.deleted) countDeleted++;
-            pos++;
-        }
-        aux.seekg(0,ios::end);
-        pos = 0, cant = aux.tellg() / sizeRecord();
-        while(pos<=cant){
-            aux.seekg(pos*sizeRecord());
-            aux >> recIt;
-            if (recIt.deleted) countDeleted++;
-            pos++;
-        }
-        data.close();
-        aux.close();
-        return countDeleted;
-    }
-
-
-    void print_all(string file) {
-        fstream filet(file, ios::in | ios::binary);
+    void print_all() {
+        fstream filet1(dataFile, ios::in | ios::binary);
         int pos = 0;
-        fixedRecord<typeRecord,typeKey> temp;
-        while(filet >> temp){
+        fixedRecord<typeRecord,typeKey> temp1;
+        cout << "---- dataFile ---- " << endl;
+        while(filet1 >> temp1){
             pos++;
-            filet.seekg(pos * sizeRecord());
-            temp.print();
+            cout << "-- registro: " << pos << "--" << endl;
+            filet1.seekg(pos * sizeRecord());
+            temp1.print();
         }
-        cout <<"*****************\n";
+        filet1.close();
+        fstream filet2(auxFile, ios::in | ios::binary);
+        pos = 0;
+        fixedRecord<typeRecord,typeKey> temp2;
+        cout << "---- auxFile ---- " << endl;
+        while(filet2 >> temp2){
+            pos++;
+            cout << "-- registro: " << pos << "--" << endl;
+            filet2.seekg(pos * sizeRecord());
+            temp2.print();
+        }
+        filet2();
     }
 
     vector<fixedRecord<typeRecord,typeKey>> search(int key) {
@@ -358,17 +335,14 @@ public:
 
         int newSize = maxAuxSize + (data.tellg()/sizeRecord());
         int countDeleted = countD(dataFile,auxFile);
-        cout << countDeleted << '\n';
         newSize -= countDeleted;
         data.seekg(0);
         data >> header;
-        cout << header.nextPosition << " " << header.nextFile  <<endl;
         temp.nextPosition = header.nextPosition;
         temp.nextFile = header.nextFile;
         data2.seekp(0);
         data2 << header;
         int pos = 1;
-        cout << temp.nextPosition << " " << temp.nextFile<<endl;
         while(temp.nextPosition!=-1 and temp.nextFile!=-1){
             fixedRecord<typeRecord, typeKey> curr;
             if (temp.nextFile == 0) {
@@ -392,7 +366,8 @@ public:
             temp.nextPosition = curr.nextPosition;
             pos++;
         }
-        cout<<pos<<endl;
+        data.close();
+        aux.close();
     }
 
     void readRecordData(int pos) {
@@ -456,6 +431,8 @@ public:
                 }
             }
         }
+        data.close();
+        aux.close();
         return {file, index};
     }
 
@@ -466,6 +443,32 @@ public:
         aux >> record;
         aux.close();
         record.print();
+    }
+
+    int countD(const char* d, const char* a){
+        fstream data(d, ios::in | ios::binary);
+        fstream aux(a, ios::in | ios::binary);
+        int countDeleted = 0;
+        fixedRecord<typeRecord,typeKey> recIt;
+        data.seekg(0,ios::end);
+        int pos = 0, cant = data.tellg() / sizeRecord();
+        while(pos<=cant){
+            data.seekg(pos * sizeRecord());
+            data >> recIt;
+            if (recIt.deleted) countDeleted++;
+            pos++;
+        }
+        aux.seekg(0,ios::end);
+        pos = 0, cant = aux.tellg() / sizeRecord();
+        while(pos<=cant){
+            aux.seekg(pos*sizeRecord());
+            aux >> recIt;
+            if (recIt.deleted) countDeleted++;
+            pos++;
+        }
+        data.close();
+        aux.close();
+        return countDeleted;
     }
 
     int sizeRecord(){

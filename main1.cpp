@@ -3,58 +3,34 @@
 //
 
 #include "extendibleHash.h"
+#include <chrono>
+using namespace std::chrono;
 
-int main(){
+void test1(){
     extendibleHash<Record> ExtendibleHash;
-    ExtendibleHash.load();
-    // cambien el globalDepth para probar
-    /*
+    ExtendibleHash.load("../pruebaHash100.csv");
     vector<string> f1 = {"1", "6", "3", "4", "5", "6", "7", "8"};
     vector<string> f2 = {"11", "8", "31", "41", "51", "61", "71", "81"};
     vector<string> f3 = {"11", "3", "31", "41", "51", "61", "71", "81"};
     vector<string> f4 = {"1", "1", "3", "4", "5", "6", "7", "8"};
     vector<string> f5 = {"11", "2", "31", "41", "51", "61", "71", "81"};
-    vector<string> f6 = {"11", "10", "31", "41", "51", "61", "71", "81"};
-    vector<string> f7 = {"1", "11", "3", "4", "5", "6", "7", "8"};
-    vector<string> f8 = {"11", "4", "31", "41", "51", "61", "71", "81"};
-    vector<string> f9 = {"11", "5", "31", "41", "51", "61", "71", "81"};
     Record record1,record2,record3,record4,record5,record6,record7,record8,record9;
     record1.load(f1);
     record2.load(f2);
     record3.load(f3);
     record4.load(f4);
-    record5.load(f5);
-    record6.load(f6);
-    record7.load(f7);
-    record8.load(f8);
-    record9.load(f9);
+    record5.load(f5);;
     ExtendibleHash.insert(record1);
     ExtendibleHash.insert(record2);
     ExtendibleHash.insert(record3);
     ExtendibleHash.insert(record4);
     ExtendibleHash.insert(record5);
-    ExtendibleHash.insert(record6);
-    ExtendibleHash.insert(record7);
-    ExtendibleHash.insert(record8);
-    ExtendibleHash.insert(record9);
-    */
-    ExtendibleHash.printBucket("0");
-    ExtendibleHash.printBucket("1");
-    ExtendibleHash.printBucket("00");
-    ExtendibleHash.printBucket("10");
-    ExtendibleHash.printBucket("01");
-    ExtendibleHash.printBucket("11");
-    ExtendibleHash.printBucket("010");
-    ExtendibleHash.printBucket("110");
-    ExtendibleHash.printBucket("001");
-    ExtendibleHash.printBucket("101");
-    ExtendibleHash.readHash(4);
-    cout << "*******\n";
-    ExtendibleHash.readHash(5);
+    ExtendibleHash.printAllBuckets();
+}
 
-
-
-    //Prueba de la funcion search
+void test2(){
+    extendibleHash<Record> ExtendibleHash;
+    //ExtendibleHash.load("../pruebaHash100.csv");
     int searchKey = 6;
     cout << "------" << endl;
     vector<Record> searchResults = ExtendibleHash.search(searchKey);
@@ -69,5 +45,86 @@ int main(){
         }
     }
 
+}
+
+int main(){
+    test1();
+    //test2();
+    //test3();;
+    extendibleHash<Record> ExtendibleHash;
+    //ExtendibleHash.load("../prueba1000.csv");
+    /*          100 REGISTROS         */
+    /*
+    auto start = high_resolution_clock::now();
+    ExtendibleHash.load("../prueba1000.csv");
+    auto stop = high_resolution_clock::now();
+    auto time = duration_cast<milliseconds>(stop-start);
+    cout << "Execution Time: " << time.count() << " milliseconds" << endl;
+    cout << "Cantidad de accesos: " << countRead + countWrite << '\n';
+
+    auto start = high_resolution_clock::now();
+    vector<Record> v1 = ExtendibleHash.search(10);
+    vector<Record> v2 = ExtendibleHash.search(23);
+    vector<Record> v3 = ExtendibleHash.search(51);
+    vector<Record> v4 = ExtendibleHash.search(73);
+    vector<Record> v5 = ExtendibleHash.search(97);
+    auto stop = high_resolution_clock::now();
+    auto time = duration_cast<milliseconds>(stop-start);
+    cout << "Execution Time: " << time.count() << " milliseconds" << endl;
+    cout << "Cantidad de accesos: " << countRead + countWrite << '\n';
+    */
+    /*          200 REGISTROS       */
+    /*
+    ExtendibleHash.load("../pruebaHash200.csv");
+
+    auto start = high_resolution_clock::now();
+    ExtendibleHash.insert(record1);
+    ExtendibleHash.insert(record2);
+    ExtendibleHash.insert(record3);
+    ExtendibleHash.insert(record4);
+    ExtendibleHash.insert(record5);
+    auto stop = high_resolution_clock::now();
+    auto time = duration_cast<milliseconds>(stop-start);
+    cout << "Execution Time: " << time.count() << " milliseconds" << endl;
+    cout << "Cantidad de accesos: " << countRead + countWrite << '\n';
+
+    auto start = high_resolution_clock::now();
+    vector<Record> v1 = ExtendibleHash.search(10);
+    vector<Record> v2 = ExtendibleHash.search(23);
+    vector<Record> v3 = ExtendibleHash.search(51);
+    vector<Record> v4 = ExtendibleHash.search(73);
+    vector<Record> v5 = ExtendibleHash.search(97);
+    auto stop = high_resolution_clock::now();
+    auto time = duration_cast<milliseconds>(stop-start);
+    cout << "Execution Time: " << time.count() << " milliseconds" << endl;
+    cout << "Cantidad de accesos: " << countRead + countWrite << '\n';
+     */
+
+    /*          500 REGISTROS        */
+    /*
+    ExtendibleHash.load("../pruebaHash500.csv");
+
+    auto start = high_resolution_clock::now();
+    ExtendibleHash.insert(record1);
+    ExtendibleHash.insert(record2);
+    ExtendibleHash.insert(record3);
+    ExtendibleHash.insert(record4);
+    ExtendibleHash.insert(record5);
+    auto stop = high_resolution_clock::now();
+    auto time = duration_cast<milliseconds>(stop-start);
+    cout << "Execution Time: " << time.count() << " milliseconds" << endl;
+    cout << "Cantidad de accesos: " << countRead + countWrite << '\n';
+
+    auto start = high_resolution_clock::now();
+    vector<Record> v1 = ExtendibleHash.search(10);
+    vector<Record> v2 = ExtendibleHash.search(23);
+    vector<Record> v3 = ExtendibleHash.search(51);
+    vector<Record> v4 = ExtendibleHash.search(73);
+    vector<Record> v5 = ExtendibleHash.search(97);
+    auto stop = high_resolution_clock::now();
+    auto time = duration_cast<milliseconds>(stop-start);
+    cout << "Execution Time: " << time.count() << " milliseconds" << endl;
+    cout << "Cantidad de accesos: " << countRead + countWrite << '\n';
+    */
 
 }
