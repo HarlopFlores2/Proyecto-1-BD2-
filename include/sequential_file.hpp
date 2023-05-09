@@ -134,6 +134,8 @@ public:
             SequentialFile const* sf);
         Iterator(Iterator const& it);
 
+        auto operator=(Iterator const& other) -> Iterator&;
+
         uint64_t calculate_offset(uint64_t index, IndexLocation index_location) const;
 
         auto operator*() const -> reference;

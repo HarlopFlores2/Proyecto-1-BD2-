@@ -149,6 +149,26 @@ SequentialFile::Iterator::Iterator(Iterator const& it)
     m_end = it.m_end;
 }
 
+auto SequentialFile::Iterator::operator=(Iterator const& other) -> Iterator&
+{
+    m_data_filename = other.m_data_filename;
+    m_aux_filename = other.m_aux_filename;
+    m_index = other.m_index;
+    m_index_location = other.m_index_location;
+    m_sf = other.m_sf;
+    m_end = other.m_end;
+
+    m_value_read.reset();
+
+    m_data_file.close();
+    m_data_file.open(m_data_filename, std::ios::in | std::ios::binary);
+
+    m_aux_file.close();
+    m_aux_file.open(m_aux_filename, std::ios::in | std::ios::binary);
+
+    return *this;
+}
+
 uint64_t
 SequentialFile::Iterator::calculate_offset(uint64_t index, IndexLocation index_location) const
 {
