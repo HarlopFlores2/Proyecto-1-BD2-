@@ -888,6 +888,37 @@ public:
         m_data_file.write(reinterpret_cast<char const*>(&next_position), sizeof(next_position));
     }
 
+    uint64_t calculate_offset(uint64_t index, IndexLocation index_location)
+    {
+        if (index_location == IndexLocation::data)
+        {
+            return header_size + index * sizeRecord();
+        }
+        else if (index_location == IndexLocation::aux)
+        {
+            return index * sizeRecord();
+        }
+
+        throw std::runtime_error("???");
+    }
+
+    void
+    write_record(IndexLocation index_location, uint64_t index, IndexRecord<Key> const& record)
+    {
+        if (index_location == IndexLocation::data)
+        {
+            m_data_file.seekp(header_size + index * sizeRecord());
+            m_data_file << record;
+        }
+        else if (index_location == IndexLocation::aux)
+        {
+            m_aux_file.seekp(index * sizeRecord());
+            m_aux_file << record;
+        }
+
+        throw std::runtime_error("???");
+    }
+
     int sizeRecord()
     {
         return sizeof(IndexRecord<Key>);
