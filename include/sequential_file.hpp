@@ -38,7 +38,7 @@ struct IndexRecord
     uint64_t relation_index;
 
     IndexLocation next_file;
-    uint64_t next_position = std::numeric_limits<uint64_t>::max();
+    uint64_t next_position;
     bool deleted = false;
 };
 
