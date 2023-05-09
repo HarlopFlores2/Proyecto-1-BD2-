@@ -26,33 +26,31 @@
 #include "json.hpp"
 
 SequentialFile::RawIterator::RawIterator(
-    std::filesystem::path filename, uint64_t index, uint64_t record_size)
+    std::filesystem::path filename, uint64_t index, SequentialFile const* sf)
     : m_filename(filename),
       m_file(m_filename, std::ios::in | std::ios::binary),
       m_index(index),
-      m_record_size(record_size)
+      m_sf(sf)
 {
     m_file.exceptions(std::ios::failbit);
 }
 
 SequentialFile::RawIterator::RawIterator(RawIterator const& it)
-    : RawIterator{it.m_filename, it.m_index, it.m_record_size}
+    : RawIterator{it.m_filename, it.m_index, it.m_sf}
 {
 }
 
 uint64_t SequentialFile::RawIterator::calculate_offset(uint64_t index) const
 {
-    return header_size + index * m_record_size;
+    return header_size + index * m_sf->m_record_size;
 }
 
 auto SequentialFile::RawIterator::operator*() const -> reference
 {
     if (!m_value_read.has_value())
     {
-        IndexRecord temp;
         m_file.seekg(calculate_offset(m_index), std::ios::beg);
-        m_file >> temp;
-        m_value_read.emplace(temp);
+        m_value_read.emplace(m_sf->read_record(m_file));
     }
 
     return m_value_read.value();

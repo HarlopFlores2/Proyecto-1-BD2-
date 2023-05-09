@@ -75,11 +75,11 @@ public:
         mutable std::ifstream m_file;
         uint64_t m_index;
 
-        uint64_t m_record_size;
-
         mutable std::optional<IndexRecord> m_value_read;
 
-        RawIterator(std::filesystem::path filename, uint64_t index, uint64_t record_size);
+        SequentialFile const* m_sf;
+
+        RawIterator(std::filesystem::path filename, uint64_t index, SequentialFile const* sf);
         RawIterator(RawIterator const& it);
 
         uint64_t calculate_offset(uint64_t index) const;
