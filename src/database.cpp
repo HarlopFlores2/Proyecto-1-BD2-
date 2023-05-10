@@ -345,6 +345,10 @@ auto DataBase::evaluate(ParsedExpression const& pe) -> std::optional<MemoryRelat
             [&](DropTableExpression const& dt_e) -> std::optional<MemoryRelation> {
                 remove_relation(dt_e.relation);
                 return {};
+            },
+            [&](CreateIndexExpression const& ci_e) -> std::optional<MemoryRelation> {
+                create_index(ci_e.relation, ci_e.index_type, ci_e.attribute);
+                return {};
             }},
 
         pe);
