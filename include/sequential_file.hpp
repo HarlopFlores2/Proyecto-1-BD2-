@@ -86,6 +86,8 @@ public:
         RawIterator(RawIterator const& other);
         RawIterator(RawIterator&& other) noexcept;
 
+        ~RawIterator() = default;
+
         void swap(RawIterator& other);
         void swap(RawIterator&& other);
 
