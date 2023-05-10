@@ -142,7 +142,7 @@ auto SequentialFile::RawIterator::operator++() -> RawIterator&
 auto SequentialFile::RawIterator::operator++(int) -> RawIterator
 {
     RawIterator it{*this};
-    ++it;
+    ++(*this);
     return it;
 }
 
