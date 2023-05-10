@@ -132,6 +132,28 @@ auto DataBase::create_relation(
     return it->second;
 }
 
+void DataBase::remove_relation(std::string const& name)
+{
+    auto rel_it = m_relations.find(name);
+    if (rel_it == m_relations.end())
+    {
+        throw std::runtime_error("Relation " + name + " does not exist.");
+    }
+
+    if (!std::filesystem::remove(rel_it->second.m_filename))
+    {
+        throw std::runtime_error("Removal of relation file failed.");
+    }
+    m_relations.erase(rel_it);
+
+    auto db_info_it = m_db_info["relations"].find(name);
+    assert(db_info_it != m_db_info["relations"].end());
+    m_db_info["relations"].erase(db_info_it);
+
+    std::ofstream of{m_path / db_file, std::fstream::out | std::fstream::binary};
+    of << m_db_info;
+}
+
 auto DataBase::generate_relation_filename(std::string const& relation_name) -> std::string
 {
     return relation_name + ".data";

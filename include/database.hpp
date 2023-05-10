@@ -31,6 +31,7 @@ struct DataBase
         std::string const& name,
         std::vector<Attribute> attributes,
         std::optional<std::string> const& primary_key) -> FileRelation&;
+    void remove_relation(std::string const& name);
 
     static auto generate_relation_filename(std::string const& relation_name) -> std::string;
     [[nodiscard]] auto get_relation(std::string const& relation_name) -> FileRelation&;
