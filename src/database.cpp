@@ -74,10 +74,42 @@ DataBase::DataBase(std::string name)
                 attributes.emplace_back(a_name, a_type);
             }
 
-            this->create_relation(name, attributes, primary_key);
+            FileRelation& fr = this->create_relation(name, attributes, primary_key);
+
+            for (auto const& [attribute, specification] :
+                 j_def["indexes"].get<std::map<std::string, json>>())
+            {
+                auto a_it =
+                    std::find_if(attributes.begin(), attributes.end(), [&](Attribute const& a) {
+                        return a.name == attribute;
+                    });
+
+                if (a_it == attributes.end())
+                {
+                    throw std::runtime_error("Attribute not in relation");
+                }
+
+                for (auto const& [index_type, specification] :
+                     specification.get<std::map<std::string, json>>())
+                {
+                    if (index_type == "sequential")
+                    {
+                        SequentialFile sf(
+                            specification.at("data_file").get<std::string>(),
+                            specification.at("aux_file").get<std::string>(),
+                            *a_it,
+                            specification.at("max_aux").get<uint64_t>());
+
+                        fr.m_indexes.emplace_back(sf);
+                    }
+                    else
+                    {
+                        throw std::runtime_error("Not implemented");
+                    }
+                }
+            }
         }
 
-        // TODO: Handle indexes
         // TODO: Handle primary key
 
         return;
