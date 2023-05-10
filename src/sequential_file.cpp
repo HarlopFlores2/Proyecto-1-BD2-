@@ -755,26 +755,20 @@ auto SequentialFile::find_location_to_add(json const& key) const -> std::optiona
     IndexRecord temp;
 
     m_data_file.seekg(0, std::ios::end);
-    long n_records = m_data_file.tellg() / m_record_size;
+    uint64_t n_records = (uint64_t(m_data_file.tellg()) - header_size) / m_record_size;
 
-    reverse_raw_iterator r_end(RawIterator(m_data_filename, 0, this));
-    reverse_raw_iterator r_begin(RawIterator(m_data_filename, n_records, this));
+    ReverseRawIterator r_begin(m_data_filename, n_records - 1, this);
+    ReverseRawIterator r_end(m_data_filename, -1, this);
 
-    reverse_raw_iterator r_it =
-        std::upper_bound(r_begin, r_end, key, [](json const& j, IndexRecord const& ir) -> bool {
-            return ir.key < j;
-        });
+    ReverseRawIterator r_it = std::upper_bound(
+        r_begin, r_end, 0, [&](int, IndexRecord const& ir) -> bool { return ir.key < key; });
 
     while (r_it != r_end)
     {
         if (r_it->deleted == false)
         {
             Iterator it(
-                m_data_filename,
-                m_aux_filename,
-                (r_it.base() - 1).m_index,
-                IndexLocation::data,
-                this);
+                m_data_filename, m_aux_filename, r_it.m_index, IndexLocation::data, this);
             Iterator it_next(it);
             ++it_next;
 
