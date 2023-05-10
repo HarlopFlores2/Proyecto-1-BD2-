@@ -118,7 +118,7 @@ public:
     class RawIterator
     {
     public:
-        using iterator_category = std::bidirectional_iterator_tag;
+        using iterator_category = std::random_access_iterator_tag;
         using value_type = IndexRecord;
         using difference_type = std::ptrdiff_t;
         using reference = IndexRecord const&;
