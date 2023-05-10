@@ -31,6 +31,7 @@ struct k_and : pegtl::istring<'a', 'n', 'd'> {};
 struct k_between : pegtl::istring<'b', 'e', 't', 'w', 'e', 'e', 'n'> {};
 struct k_create : pegtl::istring<'c', 'r', 'e', 'a', 't', 'e'> {};
 struct k_csv : pegtl::istring<'c', 's', 'v'> {};
+struct k_drop : pegtl::istring<'d', 'r', 'o', 'p'> {};
 struct k_from : pegtl::istring<'f', 'r', 'o', 'm'> {};
 struct k_insert : pegtl::istring<'i', 'n', 's', 'e', 'r', 't'> {};
 struct k_integer : pegtl::istring<'i', 'n', 't', 'e', 'g', 'e', 'r'> {};
@@ -237,7 +238,16 @@ struct s_insert : pegtl::seq<
     k_semicolon
 > {};
 
-struct grammar : pegtl::must<pegtl::sor<s_select, s_create_table, s_insert>> {};
+struct s_drop_table : pegtl::seq<
+    k_drop,
+    spaces_p,
+    k_table,
+    spaces_p,
+    table_name,
+    k_semicolon
+> {};
+
+struct grammar : pegtl::must<pegtl::sor<s_select, s_create_table, s_insert, s_drop_table>> {};
 
 // clang-format on
 
@@ -276,7 +286,9 @@ using selector = pegtl::parse_tree::selector<
         s_insert,
         insert_source_csv,
         insert_source_values,
-        insert_source_values_values>,
+        insert_source_values_values,
+
+        s_drop_table>,
     pegtl::parse_tree::fold_one::on<identifier_or_literal>>;
 
 struct SelectExpression
@@ -305,11 +317,17 @@ struct InsertCSVExpression
     std::string filename;
 };
 
+struct DropTableExpression
+{
+    std::string relation;
+};
+
 using ParsedExpression = std::variant<
     SelectExpression,
     CreateTableExpression,
     InsertValuesExpression,
-    InsertCSVExpression>;
+    InsertCSVExpression,
+    DropTableExpression>;
 
 auto literal_node_to_value(pegtl::parse_tree::node const& node) -> nlohmann::json;
 auto node_to_predicate_type(pegtl::parse_tree::node const& node) -> predicate_type;
