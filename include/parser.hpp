@@ -33,13 +33,16 @@ struct k_create : pegtl::istring<'c', 'r', 'e', 'a', 't', 'e'> {};
 struct k_csv : pegtl::istring<'c', 's', 'v'> {};
 struct k_drop : pegtl::istring<'d', 'r', 'o', 'p'> {};
 struct k_from : pegtl::istring<'f', 'r', 'o', 'm'> {};
+struct k_index : pegtl::istring<'i', 'n', 'd', 'e', 'x'> {};
 struct k_insert : pegtl::istring<'i', 'n', 's', 'e', 'r', 't'> {};
 struct k_integer : pegtl::istring<'i', 'n', 't', 'e', 'g', 'e', 'r'> {};
 struct k_into : pegtl::istring<'i', 'n', 't', 'o'> {};
 struct k_key : pegtl::istring<'k', 'e', 'y'> {};
+struct k_on : pegtl::istring<'o', 'n'> {};
 struct k_primary : pegtl::istring<'p', 'r', 'i', 'm', 'a', 'r', 'y'> {};
 struct k_select : pegtl::istring<'s', 'e', 'l', 'e', 'c', 't'> {};
 struct k_table : pegtl::istring<'t', 'a', 'b', 'l', 'e'> {};
+struct k_using : pegtl::istring<'u', 's', 'i', 'n', 'g'> {};
 struct k_where : pegtl::istring<'w', 'h', 'e', 'r', 'e'> {};
 struct k_values : pegtl::istring<'v', 'a', 'l', 'u', 'e', 's'> {};
 struct k_varchar : pegtl::istring<'v', 'a', 'r', 'c', 'h', 'a', 'r'> {};
@@ -247,7 +250,41 @@ struct s_drop_table : pegtl::seq<
     k_semicolon
 > {};
 
-struct grammar : pegtl::must<pegtl::sor<s_select, s_create_table, s_insert, s_drop_table>> {};
+struct sequential_index : pegtl::istring<'s', 'e', 'q', 'u', 'e', 'n', 't', 'i', 'a', 'l'> {};
+
+struct index_method : pegtl::sor<
+    sequential_index
+> {};
+
+struct s_create_index : pegtl::seq<
+    k_create,
+    spaces_p,
+    k_index,
+    spaces_p,
+    k_on,
+    spaces_p,
+    table_name,
+    spaces_p,
+    k_using,
+    spaces_p,
+    index_method,
+    spaces_p,
+    pegtl::one<'('>,
+    spaces_s,
+    identifier,
+    spaces_s,
+    pegtl::one<')'>,
+    spaces_s,
+    k_semicolon
+> {};
+
+struct grammar : pegtl::must<pegtl::sor<
+    s_select,
+    s_create_table,
+    s_insert,
+    s_drop_table,
+    s_create_index
+>> {};
 
 // clang-format on
 
@@ -288,7 +325,11 @@ using selector = pegtl::parse_tree::selector<
         insert_source_values,
         insert_source_values_values,
 
-        s_drop_table>,
+        s_drop_table,
+
+        s_create_index,
+        index_method,
+        sequential_index>,
     pegtl::parse_tree::fold_one::on<identifier_or_literal>>;
 
 struct SelectExpression
