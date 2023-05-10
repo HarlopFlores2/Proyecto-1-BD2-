@@ -3,6 +3,11 @@
 #include "predicates.hpp"
 #include "sequential_file.hpp"
 
+enum class IndexType
+{
+    SequentialFile
+};
+
 using index_type = std::variant<SequentialFile>;
 
 auto operate_index(index_type const& index, predicate_type const& pred)
