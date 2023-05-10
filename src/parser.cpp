@@ -318,6 +318,13 @@ auto process_tree(p_node const& node) -> ParsedExpression
                 [](InsertCSVExpression const& i_csv) -> ParsedExpression { return i_csv; }},
             iv);
     }
+    else if (exp.is_type<s_drop_table>())
+    {
+        p_node const& t_name = *exp.children.at(0);
+        assert(t_name.is_type<table_name>());
+
+        return DropTableExpression{t_name.string()};
+    }
     else
     {
         throw std::runtime_error("Not implemented.");
