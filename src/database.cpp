@@ -92,9 +92,7 @@ DataBase::DataBase(std::string name)
     of << m_db_info;
 }
 
-DataBase::~DataBase()
-{
-}
+DataBase::~DataBase() = default;
 
 auto DataBase::create_relation(
     std::string const& name,
