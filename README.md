@@ -218,6 +218,47 @@ Dataset | Total de accesos
 500 | 153
 1000 | 230
 
+## Implementación de genericidad
+
+Para poder soportar cualquier clase de dominio de datos se usan _tagged unions_
+y un tipo auxiliar que indica el tipo de dato guardado y como debe ser leído y
+escrito. Se hace amplio uso de std::variant (y el patrón de uso de std::visit) y
+de un tipo originalmente destinado para uso con valores JSON. De esta forma
+podemos tener tablas con atributos decididos durante la ejecución del programa.
+
+Por el momento solo son soportados enteros y strings pero debería ser directo
+soportar otros tipos de longitud fija.
+
+Los datos son guardados en un heap file y sobre esta se pueden crear índices
+para cualquier atributo. Estos índices asocian la clave con posiciones en el
+heap file en vez de con los valores de la tupla.
+
+## Evaluación SQL
+
+Se implementó un parser SQL que soporte operaciones básicas. Primero definimos
+la grámatica como la unión de cada una de las operaciones soportadas y obtenemos
+un parse tree. Creamos una función que procese el árbol para cada tipo de
+operación posible y nos devuelva algo que puede ser fácilmente ejecutado por
+nuestra clase DataBase.
+
+Algunos ejemplos de operaciones soportadas.
+
+    CREATE TABLE T (a1 INTEGER, a2 VARCHAR(10), a3 VARCHAR(20));
+![CREATE TABLE Tree](images/sql_create_table.png)
+
+    CREATE INDEX ON R1 USING SEQUENTIAL (A1);
+![CREATE INDEX Tree](images/sql_create_index.png)
+
+    SELECT *, A1, A2 FROM T WHERE A1 == "foo" AND A3 BETWEEN 1 AND 1000;
+![SELECT Tree](images/sql_select.png)
+
+    INSERT INTO R VALUES (11, "foo", 22);
+![INSERT VALUES Tree](images/sql_insert.png)
+
+Todo el código relevante a la genericidad y el parser puede ser encontrado en la
+rama de
+[alv-db-v2](https://github.com/HarlopFlores2/Proyecto-1-BD2-/tree/alv-db-v2).
+
 ## Conclusiones
 
 * La inserciones y búsquedas en el indice Sequential File son bastante
