@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "file_relation.hpp"
+#include "index.hpp"
 #include "json.hpp"
 #include "memory_relation.hpp"
 #include "parser.hpp"
@@ -32,6 +33,8 @@ struct DataBase
         std::vector<Attribute> attributes,
         std::optional<std::string> const& primary_key) -> FileRelation&;
     void remove_relation(std::string const& name);
+    void create_index(
+        std::string const& relation, IndexType index_type, std::string const& attribute);
 
     static auto generate_relation_filename(std::string const& relation_name) -> std::string;
     [[nodiscard]] auto get_relation(std::string const& relation_name) -> FileRelation&;

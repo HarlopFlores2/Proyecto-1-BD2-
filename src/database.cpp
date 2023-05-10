@@ -2,6 +2,7 @@
 #include <experimental/filesystem>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -12,11 +13,14 @@
 #include "attribute.hpp"
 #include "csv.hpp"
 #include "database.hpp"
+#include "file_relation.hpp"
+#include "index.hpp"
 #include "json.hpp"
 #include "memory_relation.hpp"
 #include "operations.hpp"
 #include "parser.hpp"
 #include "relation.hpp"
+#include "sequential_file.hpp"
 #include "util.hpp"
 
 using json = nlohmann::json;
@@ -150,6 +154,58 @@ void DataBase::remove_relation(std::string const& name)
 
     std::ofstream of{m_path / db_file, std::fstream::out | std::fstream::binary};
     of << m_db_info;
+}
+
+void DataBase::create_index(
+    std::string const& relation, IndexType index_type, std::string const& attribute)
+{
+    FileRelation& fr = get_relation(relation);
+
+    auto a_it =
+        std::find_if(fr.m_attributes.begin(), fr.m_attributes.end(), [&](Attribute const& a) {
+            return a.name == attribute;
+        });
+
+    if (a_it == fr.m_attributes.end())
+    {
+        throw std::runtime_error(
+            "Attribute " + attribute + " does not exist in relation " + relation + ".");
+    }
+
+    uint16_t attribute_index = std::distance(fr.m_attributes.begin(), a_it);
+
+    if (index_type == IndexType::SequentialFile)
+    {
+        std::filesystem::path data_index_file = fr.m_filename;
+        data_index_file += ".seq." + attribute + ".data";
+        std::filesystem::path aux_index_file = fr.m_filename;
+        aux_index_file += ".seq." + attribute + ".aux";
+
+        uint64_t max_aux_size = 100;
+
+        SequentialFile sf(data_index_file, aux_index_file, *a_it, max_aux_size);
+
+        for (FileRelation::Iterator it = fr.begin(); it != fr.end(); ++it)
+        {
+            sf.insert((*it)[attribute_index], it.calculate_index());
+        }
+
+        fr.m_indexes.emplace_back(sf);
+
+        m_db_info["relations"][relation]["indexes"][attribute]["sequential"]["data_file"] =
+            data_index_file.string();
+        m_db_info["relations"][relation]["indexes"][attribute]["sequential"]["aux_file"] =
+            aux_index_file.string();
+        m_db_info["relations"][relation]["indexes"][attribute]["sequential"]["max_aux"] =
+            max_aux_size;
+
+        std::ofstream of{m_path / db_file, std::fstream::out | std::fstream::binary};
+        of << m_db_info;
+    }
+    else
+    {
+        throw std::runtime_error("Not implemented");
+    }
 }
 
 auto DataBase::generate_relation_filename(std::string const& relation_name) -> std::string
