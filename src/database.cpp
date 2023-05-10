@@ -285,7 +285,12 @@ auto DataBase::evaluate(ParsedExpression const& pe) -> std::optional<MemoryRelat
                 }
 
                 return {};
+            },
+            [&](DropTableExpression const& dt_e) -> std::optional<MemoryRelation> {
+                remove_relation(dt_e.relation);
+                return {};
             }},
+
         pe);
 
     return ret;
