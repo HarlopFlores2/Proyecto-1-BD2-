@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "attribute.hpp"
+#include "index.hpp"
 #include "json.hpp"
 #include "predicates.hpp"
 
@@ -363,12 +364,20 @@ struct DropTableExpression
     std::string relation;
 };
 
+struct CreateIndexExpression
+{
+    std::string relation;
+    IndexType index_type;
+    std::string attribute;
+};
+
 using ParsedExpression = std::variant<
     SelectExpression,
     CreateTableExpression,
     InsertValuesExpression,
     InsertCSVExpression,
-    DropTableExpression>;
+    DropTableExpression,
+    CreateIndexExpression>;
 
 auto literal_node_to_value(pegtl::parse_tree::node const& node) -> nlohmann::json;
 auto node_to_predicate_type(pegtl::parse_tree::node const& node) -> predicate_type;

@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "attribute.hpp"
+#include "index.hpp"
 #include "json.hpp"
 #include "parser.hpp"
 #include "predicates.hpp"
@@ -324,6 +325,33 @@ auto process_tree(p_node const& node) -> ParsedExpression
         assert(t_name.is_type<table_name>());
 
         return DropTableExpression{t_name.string()};
+    }
+    else if (exp.is_type<s_create_index>())
+    {
+        CreateIndexExpression cie;
+
+        p_node const& t_name = *exp.children.at(0);
+        assert(t_name.is_type<table_name>());
+        cie.relation = t_name.string();
+
+        p_node const& i_method = *exp.children.at(1);
+        assert(i_method.is_type<index_method>());
+
+        p_node const& actual_index_method = *i_method.children.at(0);
+        if (actual_index_method.is_type<sequential_index>())
+        {
+            cie.index_type = IndexType::SequentialFile;
+        }
+        else
+        {
+            throw std::runtime_error("Not implemented.");
+        }
+
+        p_node const& column = *exp.children.at(2);
+        assert(column.is_type<identifier>());
+        cie.attribute = column.string();
+
+        return cie;
     }
     else
     {
