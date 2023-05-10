@@ -64,6 +64,57 @@ public:
     constexpr static uint64_t header_size =
         sizeof(IndexRecord::next_file) + sizeof(IndexRecord::next_position);
 
+    class ReverseRawIterator
+    {
+    public:
+        using iterator_category = std::random_access_iterator_tag;
+        using value_type = IndexRecord;
+        using difference_type = std::ptrdiff_t;
+        using reference = IndexRecord const&;
+        using pointer = IndexRecord const*;
+
+    public:
+        std::filesystem::path m_filename;
+        mutable std::ifstream m_file;
+        int64_t m_index;
+
+        mutable std::optional<IndexRecord> m_value_read;
+
+        SequentialFile const* m_sf;
+
+        ReverseRawIterator(
+            std::filesystem::path filename, int64_t index, SequentialFile const* sf);
+        ReverseRawIterator(ReverseRawIterator const& other);
+        ReverseRawIterator(ReverseRawIterator&& other) noexcept;
+
+        ~ReverseRawIterator() = default;
+
+        void swap(ReverseRawIterator& other);
+        void swap(ReverseRawIterator&& other);
+
+        auto operator=(ReverseRawIterator const& other) -> ReverseRawIterator&;
+        auto operator=(ReverseRawIterator&& other) noexcept -> ReverseRawIterator&;
+
+        auto calculate_offset(int64_t index) const -> uint64_t;
+
+        auto operator*() const -> reference;
+        auto operator->() const -> pointer;
+
+        auto operator+=(difference_type n) -> ReverseRawIterator&;
+        auto operator+(difference_type n);
+        auto operator-=(difference_type n) -> ReverseRawIterator&;
+        auto operator-(difference_type n);
+        auto operator-(ReverseRawIterator const& other);
+
+        auto operator++() -> ReverseRawIterator&;
+        auto operator++(int) -> ReverseRawIterator;
+        auto operator--() -> ReverseRawIterator&;
+        auto operator--(int) -> ReverseRawIterator;
+
+        auto operator==(ReverseRawIterator const& other) -> bool;
+        auto operator!=(ReverseRawIterator const& other) -> bool;
+    };
+
     class RawIterator
     {
     public:
@@ -113,8 +164,6 @@ public:
         auto operator==(RawIterator const& other) -> bool;
         auto operator!=(RawIterator const& other) -> bool;
     };
-
-    using reverse_raw_iterator = std::reverse_iterator<RawIterator>;
 
     class Iterator
     {

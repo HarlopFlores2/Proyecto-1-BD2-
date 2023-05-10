@@ -25,6 +25,163 @@
 
 using json = nlohmann::json;
 
+SequentialFile::ReverseRawIterator::ReverseRawIterator(
+    std::filesystem::path filename, int64_t index, SequentialFile const* sf)
+    : m_filename(std::move(filename)),
+      m_file(m_filename, std::ios::in | std::ios::binary),
+      m_index(index),
+      m_sf(sf)
+{
+    m_file.exceptions(std::ios::failbit);
+}
+
+SequentialFile::ReverseRawIterator::ReverseRawIterator(ReverseRawIterator const& other)
+    : ReverseRawIterator{other.m_filename, other.m_index, other.m_sf}
+{
+}
+
+SequentialFile::ReverseRawIterator::ReverseRawIterator(ReverseRawIterator&& other) noexcept
+    : m_filename(std::move(other.m_filename)),
+      m_file(std::move(other.m_file)),
+      m_index(other.m_index),
+      m_value_read(std::move(other.m_value_read)),
+      m_sf(other.m_sf)
+{
+}
+
+void SequentialFile::ReverseRawIterator::swap(ReverseRawIterator& other)
+{
+    std::swap(m_filename, other.m_filename);
+    std::swap(m_file, other.m_file);
+    std::swap(m_index, other.m_index);
+    std::swap(m_value_read, other.m_value_read);
+    std::swap(m_sf, other.m_sf);
+}
+
+void SequentialFile::ReverseRawIterator::swap(ReverseRawIterator&& other)
+{
+    std::swap(m_filename, other.m_filename);
+    std::swap(m_file, other.m_file);
+    std::swap(m_index, other.m_index);
+    std::swap(m_value_read, other.m_value_read);
+    std::swap(m_sf, other.m_sf);
+}
+
+auto SequentialFile::ReverseRawIterator::operator=(ReverseRawIterator const& other)
+    -> ReverseRawIterator&
+{
+    this->swap(ReverseRawIterator(other));
+    return *this;
+}
+
+auto SequentialFile::ReverseRawIterator::operator=(ReverseRawIterator&& other) noexcept
+    -> ReverseRawIterator&
+{
+    this->swap(other);
+    return *this;
+}
+
+auto SequentialFile::ReverseRawIterator::calculate_offset(int64_t index) const -> uint64_t
+{
+    return header_size + index * m_sf->m_record_size;
+}
+
+auto SequentialFile::ReverseRawIterator::operator*() const -> reference
+{
+    if (m_index < 0)
+    {
+        throw std::runtime_error("Index out of range");
+    }
+
+    if (!m_value_read.has_value())
+    {
+        m_file.seekg(calculate_offset(m_index), std::ios::beg);
+        m_value_read.emplace(m_sf->read_record(m_file));
+    }
+
+    return m_value_read.value();
+}
+
+auto SequentialFile::ReverseRawIterator::operator->() const -> pointer
+{
+    return std::addressof(**this);
+}
+
+auto SequentialFile::ReverseRawIterator::operator+=(difference_type n) -> ReverseRawIterator&
+{
+    m_value_read.reset();
+    m_index -= n;
+    return *this;
+}
+
+auto SequentialFile::ReverseRawIterator::operator+(difference_type n)
+{
+    ReverseRawIterator ret(*this);
+    ret += n;
+    return ret;
+}
+
+auto SequentialFile::ReverseRawIterator::operator-=(difference_type n) -> ReverseRawIterator&
+{
+    (*this) += -n;
+    return *this;
+}
+
+auto SequentialFile::ReverseRawIterator::operator-(difference_type n)
+{
+    ReverseRawIterator ret(*this);
+    ret -= n;
+    return ret;
+}
+
+auto SequentialFile::ReverseRawIterator::operator-(ReverseRawIterator const& other)
+{
+    return -(m_index - other.m_index);
+}
+
+auto SequentialFile::ReverseRawIterator::operator++() -> ReverseRawIterator&
+{
+    (*this) += 1;
+
+    return *this;
+}
+
+auto SequentialFile::ReverseRawIterator::operator++(int) -> ReverseRawIterator
+{
+    ReverseRawIterator it{*this};
+    ++(*this);
+    return it;
+}
+
+auto SequentialFile::ReverseRawIterator::operator--() -> ReverseRawIterator&
+{
+    (*this) -= 1;
+
+    return *this;
+}
+
+auto SequentialFile::ReverseRawIterator::operator--(int) -> ReverseRawIterator
+{
+    ReverseRawIterator it{*this};
+    --it;
+    return it;
+}
+
+auto SequentialFile::ReverseRawIterator::operator==(ReverseRawIterator const& other) -> bool
+{
+    if (this->m_filename != other.m_filename)
+    {
+        return false;
+    }
+
+    return this->m_index == other.m_index;
+}
+
+auto SequentialFile::ReverseRawIterator::operator!=(ReverseRawIterator const& other) -> bool
+{
+    return !(*this == other);
+}
+
 SequentialFile::RawIterator::RawIterator(
     std::filesystem::path filename, uint64_t index, SequentialFile const* sf)
     : m_filename(std::move(filename)),
