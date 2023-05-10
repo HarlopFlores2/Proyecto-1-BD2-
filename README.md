@@ -233,3 +233,6 @@ secundaria que se utiliza para calcular el local depth, asimismo
 existe limitaciones con respecto al global depth, ya que el indice 
 puede escribirse en un archivo muy grande de datos. Por otro lado,
 búsqueda y eliminación se realizan de manera rápida y eficiente.
+
+## Link del video 
+https://drive.google.com/drive/folders/1dgeWzn1VmYkwvgUYdl7JGZBkL3BOau2P?usp=sharing
